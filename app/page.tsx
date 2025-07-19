@@ -1,3 +1,4 @@
+"use client";
 import {
   Button,
   Navbar,
@@ -6,6 +7,8 @@ import {
   NavbarLink,
   NavbarToggle,
   DarkThemeToggle,
+  Dropdown,
+  DropdownItem,
 } from "flowbite-react";
 
 export default function Home() {
@@ -23,9 +26,17 @@ export default function Home() {
           </span>
         </NavbarBrand>
         <div className="flex items-center gap-3 md:order-2">
-          <Button className="bg-black text-white hover:bg-gray-500 dark:bg-black dark:hover:bg-gray-500">
-            Login
-          </Button>
+          <Dropdown
+            label="Login"
+            renderTrigger={() => (
+              <Button className="bg-black text-white hover:bg-gray-500 dark:bg-black dark:hover:bg-gray-500">
+                Login
+              </Button>
+            )}
+          >
+            <DropdownItem href="/user-login">User</DropdownItem>
+            <DropdownItem href="/admin-login">Admin</DropdownItem>
+          </Dropdown>
           <DarkThemeToggle />
           <NavbarToggle />
         </div>
