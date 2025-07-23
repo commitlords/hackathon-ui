@@ -14,6 +14,12 @@ import { useEffect, useState } from "react";
 import TopContainer from "./components/top-container";
 import ImageCarousel from "./components/image-carousel";
 import CardCarousel from "./components/card-carousel";
+import ContactUsSection from "./components/ContactUsSection";
+import EventGallery from "./components/EventGallery";
+import FaqSection from "./components/FaqSection";
+import Footer from "./components/Footer";
+import LokSamarthMission from "./components/LokSamarthMission";
+import StatsSection from "./components/StatsSection";
 
 export default function Home() {
   const [baseFontSize, setBaseFontSize] = useState(16);
@@ -109,14 +115,19 @@ export default function Home() {
             <NavbarLink href="#">
               {translations[language].guidelines}
             </NavbarLink>
-            <NavbarLink href="#">{translations[language].contact}</NavbarLink>
+            <NavbarLink href="#contact">{translations[language].contact}</NavbarLink>
           </NavbarCollapse>
         </Navbar>
-      </div>
       <ImageCarousel />
+      <StatsSection />
+      <LokSamarthMission />
       <CardCarousel />
-      <div className="bg-gray-50 p-8 dark:bg-gray-900">
-      </div>
+      <EventGallery />
+      <FaqSection />
+      <ContactUsSection />
+      <Footer />
+    </div>
+ 
     </>
   );
 }
