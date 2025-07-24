@@ -90,7 +90,6 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6 lg:p-8 dark:bg-gray-900">
       <div className="relative w-full max-w-md md:max-w-lg">
         <div className="absolute top-4 right-4 z-10">
-          <DarkThemeToggle />
         </div>
         <Card>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
