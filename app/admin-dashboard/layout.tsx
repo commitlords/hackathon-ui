@@ -19,10 +19,12 @@ import {
   HiMenu,
   HiX,
   HiCalendar,
+  HiLogout,
 } from "react-icons/hi";
 import clsx from "clsx";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboardLayout({ children }: PropsWithChildren) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -45,6 +47,8 @@ export default function AdminDashboardLayout({ children }: PropsWithChildren) {
   const toggleSidebarCollapse = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
+
+  const router = useRouter();
 
   return (
     <div className="flex h-screen w-full min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
@@ -153,6 +157,9 @@ export default function AdminDashboardLayout({ children }: PropsWithChildren) {
               </SidebarCollapse>
               <SidebarItem href="/admin-dashboard/meetings" icon={HiCalendar}>
                 Meetings
+              </SidebarItem>
+              <SidebarItem icon={HiLogout} onClick={() => { router.push('/'); }}>
+                Logout
               </SidebarItem>
             </SidebarItemGroup>
           </SidebarItems>
