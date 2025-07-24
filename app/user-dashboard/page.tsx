@@ -318,7 +318,7 @@ export default function UserDashboardPage() {
             Quick Actions
           </h2>
           <div className="flex flex-wrap gap-4">
-            <Button as={Link} href={`/user-dashboard/members?groupID=${groups[0]?.groupID}`}>
+            <Button as={Link} href={`/user-dashboard/members?groupID=${groups[0]?.groupID}&groupName=${groups[0]?.groupName}`}>
               <HiUsers className="mr-2 h-5 w-5" />
               Add Members
             </Button>

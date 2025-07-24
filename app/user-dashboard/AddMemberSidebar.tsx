@@ -79,14 +79,14 @@ export function AddMemberSidebar({ onAddMember, groupID }: AddMemberSidebarProps
       // Upload photo to API
       try {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('attachment', file);
         const res = await fetchWithAuth('uploads', {
           method: 'POST',
           body: formData,
         });
         if (!res.ok) throw new Error('Photo upload failed');
         const data = await res.json();
-        setPhotoFileId(data.fileId);
+        setPhotoFileId(data.guid);
       } catch (err) {
         setApiError('Photo upload failed.');
         setPhotoFileId(null);
@@ -144,14 +144,14 @@ export function AddMemberSidebar({ onAddMember, groupID }: AddMemberSidebarProps
           name,
           dob,
           sex,
-          phone,
+          phoneNumber:phone,
           email,
-          aadhar,
-          pan,
+          aadharNumber:aadhar,
+          panNumber:pan,
           bankName,
-          accountNumber: bankAccount,
-          ifsc,
-          photoFileId,
+          bankAccountNumber: bankAccount,
+          bankIfscCode:ifsc,
+          photoID:photoFileId,
         }),
       });
       if (!res.ok) throw new Error('Failed to add member');

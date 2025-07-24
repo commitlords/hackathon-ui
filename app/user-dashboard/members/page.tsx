@@ -43,6 +43,7 @@ interface Member {
 export default function MembersPage() {
   const searchParams = useSearchParams();
   const groupID = searchParams.get("groupID");
+  const groupName = searchParams.get("groupName");
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [membersError, setMembersError] = useState<string | null>(null);
@@ -238,9 +239,9 @@ export default function MembersPage() {
     <div className="mx-auto w-full max-w-4xl px-2 sm:px-4">
       <h1 className="mt-4 mb-2 text-3xl font-bold">Group Members</h1>
       <div className="mb-4 text-gray-600">
-        <span className="font-semibold">Group Name:</span> 
+        <span className="font-semibold">Group Name:</span> {groupName}
         <br />
-        <span className="font-semibold">Group ID:</span> 
+        <span className="font-semibold">Group ID:</span> {groupID}
       </div>
       {loadingMembers ? (
         <div className="my-8 flex justify-center">
