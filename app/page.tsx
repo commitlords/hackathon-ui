@@ -1,17 +1,8 @@
 "use client";
-import {
-  Button,
-  Navbar,
-  NavbarBrand,
-  NavbarCollapse,
-  NavbarLink,
-  NavbarToggle,
-  DarkThemeToggle,
-  Dropdown,
-  DropdownItem,
-} from "flowbite-react";
+
 import { useEffect, useState } from "react";
 import TopContainer from "./components/top-container";
+import Header from "./components/Header";
 import ImageCarousel from "./components/image-carousel";
 import CardCarousel from "./components/card-carousel";
 import ContactUsSection from "./components/ContactUsSection";
@@ -77,47 +68,8 @@ export default function Home() {
         language={language}
         setLanguage={setLanguage}
       />
-      <div>
-        <Navbar fluid>
-          <NavbarBrand href="https://loksamarth.gov.in" target="/_blank">
-            <img
-              src="/Logo.png"
-              className="mr-1 h-6 sm:h-9"
-              alt="LOKSamarth Logo"
-            />
-            <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
-              {translations[language].appName}
-            </span>
-          </NavbarBrand>
-          <div className="flex items-center gap-3 md:order-2">
-            <Dropdown
-              label={translations[language].login}
-              renderTrigger={() => (
-                <Button className="bg-black text-white hover:bg-gray-500 dark:bg-black dark:hover:bg-gray-500">
-                  {translations[language].login}
-                </Button>
-              )}
-            >
-              <DropdownItem href="/user-login">
-                {translations[language].user}
-              </DropdownItem>
-              <DropdownItem href="/admin-login">
-                {translations[language].admin}
-              </DropdownItem>
-            </Dropdown>
-            <NavbarToggle />
-          </div>
-          <NavbarCollapse>
-            <NavbarLink href="#">{translations[language].home}</NavbarLink>
-            <NavbarLink href="#">{translations[language].about}</NavbarLink>
-            <NavbarLink href="#">{translations[language].services}</NavbarLink>
-            <NavbarLink href="#">{translations[language].resources}</NavbarLink>
-            <NavbarLink href="#">
-              {translations[language].guidelines}
-            </NavbarLink>
-            <NavbarLink href="#contact">{translations[language].contact}</NavbarLink>
-          </NavbarCollapse>
-        </Navbar>
+
+      <Header translations={translations} language={language} />
       <ImageCarousel />
       <StatsSection />
       <LokSamarthMission />
@@ -126,7 +78,6 @@ export default function Home() {
       <FaqSection />
       <ContactUsSection />
       <Footer />
-    </div>
  
     </>
   );

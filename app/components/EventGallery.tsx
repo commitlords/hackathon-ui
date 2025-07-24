@@ -42,7 +42,7 @@ const galleryImages = [
   {
     src: "/shop.jpeg",
     alt: "Woman managing her small local shop",
-    sector: "Dairy",
+    sector: "Shop",
   },
 ];
 
