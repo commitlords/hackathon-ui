@@ -385,7 +385,7 @@ export default function UserDashboardPage() {
                 <HiCheckCircle className="h-6 w-6 text-green-600 dark:text-green-300" />
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Status</p>
+                <p className="text-gray-500 dark:text-gray-400">Application Status</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {dashboardStatus}
                 </p>
@@ -415,7 +415,7 @@ export default function UserDashboardPage() {
           <div className="flex flex-wrap gap-4">
             <Button as={Link} href="/user-dashboard/members">
               <HiUsers className="mr-2 h-5 w-5" />
-              Manage Members
+              Add Members
             </Button>
             <Button
               as={Link}

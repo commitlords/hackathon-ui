@@ -26,23 +26,44 @@ export default function UserLoginPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setSuccess(null);
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (username === "user" && password === "password") {
-        // In a real app, you'd redirect the user
+    try {
+      const response = await fetch("/api/v1/groups/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Optionally store token/user info here (e.g., localStorage)
         setSuccess("Login successful! Redirecting to dashboard...");
         router.push("/user-dashboard");
       } else {
-        setError("Invalid username or password. Please try again.");
+        const errorData = await response.json();
+        setError(
+          errorData.message ||
+            "Invalid username or password. Please try again.",
+        );
       }
+    } catch (err) {
+      setError(
+        "A network error occurred. Please check your connection and try again.",
+      );
+      console.error("An error occurred during the login request:", err);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
