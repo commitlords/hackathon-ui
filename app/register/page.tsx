@@ -37,6 +37,12 @@ export default function RegisterPage() {
     setError(null);
     setSuccess(null);
 
+    // Phone number validation
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      setError("Phone number must be exactly 10 digits.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
