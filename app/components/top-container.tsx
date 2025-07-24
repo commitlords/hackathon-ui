@@ -34,7 +34,7 @@ type Translations = {
 
 interface HeaderProps {
   translations: Translations;
-  language: "en" | "hi" ;
+  language: "en" | "hi";
 }
 
 export function TopComponent({
@@ -46,7 +46,7 @@ export function TopComponent({
 }) {
   const { i18n } = useTranslation();
 
-  console.log('Current language:', i18n.language);
+  console.log("Current language:", i18n.language);
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -91,9 +91,15 @@ export function TopComponent({
           arrowIcon={false}
           inline
         >
-          <DropdownItem onClick={() => changeLanguage("en")}>English</DropdownItem>
-          <DropdownItem onClick={() => changeLanguage("hi")}>हिन्दी</DropdownItem>
-          <DropdownItem onClick={() => changeLanguage("mr")}>मराठी</DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("en")}>
+            English
+          </DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("hi")}>
+            हिन्दी
+          </DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("mr")}>
+            मराठी
+          </DropdownItem>
         </Dropdown>
         <DarkThemeToggle />
       </div>
@@ -112,7 +118,7 @@ export function Header({ translations, language }: HeaderProps) {
           className="mr-1 h-6 sm:h-9"
           alt="LOKSamarth Logo"
         />
-        <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+        <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
           {t.appName}
         </span>
       </NavbarBrand>

@@ -18,7 +18,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   manifest: "/manifest.json",
   title: "LOKSamarth",
-  description: "A platform to help users find and apply for government schemes.",
+  description:
+    "A platform to help users find and apply for government schemes.",
 };
 
 export default function RootLayout({
@@ -31,7 +32,9 @@ export default function RootLayout({
       <head>
         <ThemeModeScript />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <Providers>
           <ClientLayout>{children}</ClientLayout>
         </Providers>

@@ -385,7 +385,9 @@ export default function UserDashboardPage() {
                 <HiCheckCircle className="h-6 w-6 text-green-600 dark:text-green-300" />
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Application Status</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Application Status
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {dashboardStatus}
                 </p>

@@ -2,7 +2,11 @@
 import { useState } from "react";
 import { TopComponent } from "./top-container";
 
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [fontSize, setFontSize] = useState(16);
   return (
     <div style={{ fontSize }}>
@@ -10,4 +14,4 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {children}
     </div>
   );
-} 
+}

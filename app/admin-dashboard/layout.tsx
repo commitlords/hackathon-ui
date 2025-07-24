@@ -158,7 +158,12 @@ export default function AdminDashboardLayout({ children }: PropsWithChildren) {
               <SidebarItem href="/admin-dashboard/meetings" icon={HiCalendar}>
                 Meetings
               </SidebarItem>
-              <SidebarItem icon={HiLogout} onClick={() => { router.push('/'); }}>
+              <SidebarItem
+                icon={HiLogout}
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
                 Logout
               </SidebarItem>
             </SidebarItemGroup>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 
 const images = [
   "/top-card-1.png",
@@ -42,12 +43,18 @@ export default function ImageCarousel() {
       displayOffset = offset + total;
     }
 
+    // Responsive width for cards
     const baseStyle = {
       transition: "all 0.5s ease-out",
       position: "absolute" as const,
-      width: "60%", // Each card takes up 60% of the container width
+      width: "98%", // Nearly full width on mobile
       height: "100%",
     };
+
+    // Use 90% width for md+ screens (desktop)
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      baseStyle.width = "90%";
+    }
 
     switch (displayOffset) {
       case 0: // Active slide
@@ -82,31 +89,60 @@ export default function ImageCarousel() {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="relative mx-auto flex h-80 w-4/5 items-center justify-center">
+    <div className="bg-gray-50 py-4 sm:py-8 dark:bg-gray-900">
+      <div className="relative mx-auto flex h-48 w-full max-w-sm items-center justify-center px-0 sm:h-80 sm:max-w-2xl md:h-96 md:max-w-4xl">
         {images.map((src, index) => (
           <div key={index} style={getCardStyle(index)}>
-            <img
+            <Image
               src={src}
               alt={`Carousel image ${index + 1}`}
-              className="h-full w-full rounded-lg object-cover shadow-lg"
+              fill
+              className="rounded-lg object-cover shadow-lg"
+              sizes="(max-width: 640px) 98vw, (max-width: 1024px) 98vw, 80vw"
+              priority={index === 0}
             />
           </div>
         ))}
         {/* Navigation Buttons */}
         <button
           onClick={handlePrev}
-          className="absolute left-0 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
+          className="absolute top-1/2 left-0 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
           aria-label="Previous image"
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
         </button>
         <button
           onClick={handleNext}
-          className="absolute right-0 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
+          className="absolute top-1/2 right-0 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
           aria-label="Next image"
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 5l7 7-7 7"
+            ></path>
+          </svg>
         </button>
       </div>
     </div>

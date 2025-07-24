@@ -61,10 +61,15 @@ export default function LokSamarthMission() {
 
           <div className="absolute bottom-1 left-0 grid w-full grid-cols-2 gap-2 p-2 md:w-2/3 md:gap-4 md:p-4">
             {missionCards.map((card, index) => (
-              <Card key={index} className="!max-w-full bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+              <Card
+                key={index}
+                className="!max-w-full bg-white/80 backdrop-blur-sm dark:bg-gray-800/80"
+              >
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{card.icon}</span>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{card.title}</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    {card.title}
+                  </p>
                 </div>
               </Card>
             ))}

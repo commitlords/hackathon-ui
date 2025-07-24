@@ -1,11 +1,11 @@
 "use client";
- 
+
 import { Button, Card, Label, TextInput } from "flowbite-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
- 
+
 const CertificatePreview = ({
   memberName,
   bankName,
@@ -22,14 +22,14 @@ const CertificatePreview = ({
     month: "long",
     day: "numeric",
   });
- 
+
   // Add formatter for Indian currency
   function formatIndianNumber(numStr: string) {
     const num = Number(numStr);
     if (isNaN(num)) return numStr || "____";
     return num.toLocaleString("en-IN");
   }
- 
+
   return (
     <div
       ref={certificateRef}
@@ -59,7 +59,9 @@ const CertificatePreview = ({
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <div
+            style={{ display: "flex", justifyContent: "center", width: "100%" }}
+          >
             <Image
               src="/Logo.png"
               alt="LOKSamarth Logo"
@@ -85,7 +87,7 @@ const CertificatePreview = ({
             This certificate is proudly presented to
           </p>
         </div>
- 
+
         <div style={{ textAlign: "center" }}>
           <h2
             className="dark:text-white"
@@ -118,7 +120,7 @@ const CertificatePreview = ({
             {bankName || "Bank Name"}
           </h3>
         </div>
- 
+
         <div
           style={{
             width: "100%",
@@ -154,13 +156,13 @@ const CertificatePreview = ({
     </div>
   );
 };
- 
+
 export default function IssueCertificatePage() {
   const [memberName, setMemberName] = useState("");
   const [bankName, setBankName] = useState("");
   const [loanAmount, setLoanAmount] = useState("");
   const certificateRef = useRef<HTMLDivElement>(null);
- 
+
   const handleDownload = () => {
     const input = certificateRef.current;
     if (input) {
@@ -176,7 +178,7 @@ export default function IssueCertificatePage() {
       });
     }
   };
- 
+
   return (
     <div className="space-y-8">
       <h2 className="mb-4 text-2xl font-semibold">Issue Certificate</h2>
@@ -184,10 +186,10 @@ export default function IssueCertificatePage() {
         Fill in the details to generate a preview and download the certificate
         as a PDF.
       </p>
- 
+
       <div className="grid grid-cols-1 gap-8">
         {/* Form Section */}
-        <div className="max-w-md mx-auto w-full">
+        <div className="mx-auto w-full max-w-md">
           <Card>
             <div className="flex flex-col gap-4">
               <div>
@@ -239,7 +241,7 @@ export default function IssueCertificatePage() {
             </div>
           </Card>
         </div>
- 
+
         {/* Preview Section */}
         <div>
           <h3 className="mb-2 text-lg font-semibold">Certificate Preview</h3>
@@ -261,5 +263,3 @@ export default function IssueCertificatePage() {
     </div>
   );
 }
- 
- 

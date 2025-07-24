@@ -22,7 +22,7 @@ export default function CardCarousel() {
   const handlePrev = () => {
     setStartIndex(
       (prevIndex) =>
-        (prevIndex - 1 + cardComponents.length) % cardComponents.length
+        (prevIndex - 1 + cardComponents.length) % cardComponents.length,
     );
   };
 
@@ -43,14 +43,14 @@ export default function CardCarousel() {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="bg-gray-50 py-8 dark:bg-gray-900">
       <div className="relative mx-auto w-full max-w-7xl px-4">
         <div className="overflow-hidden">
           <div className="flex gap-4 transition-all duration-500">
             {getVisibleCards().map((CardComponent, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 w-full sm:w-1/2 md:w-1/3 lg:w-1/4"
+                className="w-full flex-shrink-0 sm:w-1/2 md:w-1/3 lg:w-1/4"
               >
                 <CardComponent />
               </div>
@@ -60,17 +60,41 @@ export default function CardCarousel() {
 
         <button
           onClick={handlePrev}
-          className="absolute left-2 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
+          className="absolute top-1/2 left-2 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
           aria-label="Previous card"
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </button>
         <button
           onClick={handleNext}
-          className="absolute right-2 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
+          className="absolute top-1/2 right-2 z-40 -translate-y-1/2 rounded-full bg-white/30 p-2 text-gray-800 hover:bg-white/50 dark:bg-gray-800/30 dark:text-white dark:hover:bg-gray-800/80"
           aria-label="Next card"
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
         </button>
       </div>
     </div>

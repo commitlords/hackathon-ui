@@ -10,10 +10,11 @@ import FaqSection from "./components/FaqSection";
 import Footer from "./components/Footer";
 import LokSamarthMission from "./components/LokSamarthMission";
 import StatsSection from "./components/StatsSection";
-import {Header} from "./components/Header.jsx";
+import { Header } from "./components/Header.jsx";
 import { useTranslation } from "react-i18next";
+import Chatbot from "./components/Chatbot";
 
-export default function Home() {
+const Home = () => {
   const [baseFontSize, setBaseFontSize] = useState(16);
   const [language, setLanguage] = useState<"en" | "hi" | "mr">("en");
   const { t } = useTranslation();
@@ -45,7 +46,9 @@ export default function Home() {
       <FaqSection />
       <ContactUsSection />
       <Footer />
- 
+      <Chatbot />
     </>
   );
-}
+};
+
+export default Home;

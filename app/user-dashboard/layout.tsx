@@ -157,7 +157,12 @@ export default function UserDashboardLayout({ children }: PropsWithChildren) {
               >
                 Meetings
               </SidebarItem>
-              <SidebarItem icon={HiLogout} onClick={() => { router.push('/'); }}>
+              <SidebarItem
+                icon={HiLogout}
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
                 Logout
               </SidebarItem>
             </SidebarItemGroup>
