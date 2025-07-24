@@ -1,58 +1,58 @@
 "use client";
 
 import Image from "next/image";
-
-// NOTE: Create a `/public/gallery` folder and add your images there.
-const galleryImages = [
-  {
-    src: "/farming.jpeg",
-    alt: "Woman working in an agricultural field",
-    sector: "Agriculture",
-  },
-  {
-    src: "/textile.jpeg",
-    alt: "Woman working in a textile factory",
-    sector: "Textiles",
-  },
-  {
-    src: "/technology.jpeg",
-    alt: "Woman working on a laptop in a tech office",
-    sector: "Technology",
-  },
-  {
-    src: "/handicrafts.jpeg",
-    alt: "Woman making handicrafts",
-    sector: "Handicrafts",
-  },
-  {
-    src: "/construction.jpeg",
-    alt: "Woman working at a construction site",
-    sector: "Construction",
-  },
-  {
-    src: "/pottery.jpeg",
-    alt: "Female healthcare worker with a patient",
-    sector: "Pottery",
-  },
-  {
-    src: "/nursery.jpeg",
-    alt: "Teacher in a classroom with students",
-    sector: "Nursery",
-  },
-  {
-    src: "/shop.jpeg",
-    alt: "Woman managing her small local shop",
-    sector: "Shop",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 export default function EventGallery() {
+  const { t } = useTranslation();
+  const galleryImages = [
+    {
+      src: "/farming.jpeg",
+      alt: t("gallery.agricultureAlt"),
+      sector: t("gallery.agriculture"),
+    },
+    {
+      src: "/textile.jpeg",
+      alt: t("gallery.textilesAlt"),
+      sector: t("gallery.textiles"),
+    },
+    {
+      src: "/technology.jpeg",
+      alt: t("gallery.technologyAlt"),
+      sector: t("gallery.technology"),
+    },
+    {
+      src: "/handicrafts.jpeg",
+      alt: t("gallery.handicraftsAlt"),
+      sector: t("gallery.handicrafts"),
+    },
+    {
+      src: "/construction.jpeg",
+      alt: t("gallery.constructionAlt"),
+      sector: t("gallery.construction"),
+    },
+    {
+      src: "/pottery.jpeg",
+      alt: t("gallery.potteryAlt"),
+      sector: t("gallery.pottery"),
+    },
+    {
+      src: "/nursery.jpeg",
+      alt: t("gallery.nurseryAlt"),
+      sector: t("gallery.nursery"),
+    },
+    {
+      src: "/shop.jpeg",
+      alt: t("gallery.shopAlt"),
+      sector: t("gallery.shop"),
+    },
+  ];
   return (
     <section className="bg-white py-16 dark:bg-gray-800">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-12 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white">Glimpses of Empowerment</h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">Celebrating the contribution of women across various sectors in India.</p>
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white">{t("gallery.title")}</h2>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">{t("gallery.description")}</p>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {galleryImages.map((image, index) => (
