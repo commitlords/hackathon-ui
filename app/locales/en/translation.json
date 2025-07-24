@@ -1,13 +1,13 @@
 {
   "title": "LOKSamarth",
-  "login": "Login",
-  "user": "User",
-  "admin": "Admin",
-  "home": "Home",
-  "about": "About Us",
-  "services": "Our Services",
-  "resources": "Resource Center",
-  "advisory": "Advisory and Guidelines",
-  "contact": "Contact",
-  "fontSize": "Font Size"
-}
+    "login": "Login",
+    "user": "User",
+    "admin": "Admin",
+    "home": "Home",
+    "about": "About Us",
+    "services": "Our Services",
+    "resources": "Resource Center",
+    "advisory": "Advisory & Guidelines",
+    "contact": "Contact",
+    "fontSize": "Font Size"
+  }

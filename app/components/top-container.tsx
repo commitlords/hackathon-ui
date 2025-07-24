@@ -1,66 +1,141 @@
 "use client";
+import { DarkThemeToggle } from "flowbite-react";
+import { HiTranslate } from "react-icons/hi";
+import { useTranslation } from "react-i18next";
+import {
+  Button,
+  Navbar,
+  NavbarBrand,
+  NavbarCollapse,
+  NavbarLink,
+  NavbarToggle,
+  Dropdown,
+  DropdownItem,
+} from "flowbite-react";
 
-import { DarkThemeToggle, Dropdown, DropdownItem } from "flowbite-react";
+// Types for Header
 
-interface TopContainerProps {
-  decreaseFontSize: () => void;
-  resetFontSize: () => void;
-  increaseFontSize: () => void;
-  language: string;
-  setLanguage: (language: "en" | "hi") => void;
+type TranslationKeys =
+  | "appName"
+  | "login"
+  | "user"
+  | "admin"
+  | "home"
+  | "about"
+  | "services"
+  | "resources"
+  | "guidelines"
+  | "contact";
+
+type Translations = {
+  en: Record<TranslationKeys, string>;
+  hi: Record<TranslationKeys, string>;
+};
+
+interface HeaderProps {
+  translations: Translations;
+  language: "en" | "hi";
 }
 
-export default function TopContainer({
-  decreaseFontSize,
-  resetFontSize,
-  increaseFontSize,
-  language,
-  setLanguage,
-}: TopContainerProps) {
+export function TopComponent({
+  fontSize,
+  setFontSize,
+}: {
+  fontSize: number;
+  setFontSize: (size: number) => void;
+}) {
+  const { i18n } = useTranslation();
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
+  const increaseFontSize = () => setFontSize(fontSize + 2);
+  const decreaseFontSize = () => setFontSize(Math.max(fontSize - 2, 12));
+  const resetFontSize = () => setFontSize(16);
+
   return (
-    <div
-      className="bg-[#1a237e] text-white dark:bg-black"
-      style={{ height: "calc(56px * 0.75)" }}
-    >
-      <div className="h-full flex items-center justify-between px-5">
-        <div className="h-full flex items-center gap-2 py-1">
-          <img
-            src="/DB-LOGO.png"
-            className="max-h-full max-w-full"
-            alt="Deutsche Bank"
-          />
-          <span className="font-bold">Deutsche Bank</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-4 rounded-full border border-white px-2 py-0.5">
-            <button onClick={decreaseFontSize} className="hover:text-gray-300 text-xs" aria-label="Decrease font size">
-              A-
-            </button>
-            <button onClick={resetFontSize} className="hover:text-gray-300 text-base" aria-label="Reset font size">
-              A
-            </button>
-            <button onClick={increaseFontSize} className="hover:text-gray-300 text-lg" aria-label="Increase font size">
-              A+
-            </button>
-          </div>
-            <DarkThemeToggle />
-          <Dropdown
-            label="Language"
-            inline
-            renderTrigger={() => (
-              <button className="text-white hover:text-gray-300 inline-flex items-center">
-                {language === "en" ? "English" : "हिंदी"}
-                <svg className="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
-                </svg>
-              </button>
-            )}
-          >
-            <DropdownItem onClick={() => setLanguage("en")}>English</DropdownItem>
-            <DropdownItem onClick={() => setLanguage("hi")}>हिंदी</DropdownItem>
-          </Dropdown>
-        </div>
+    <header className="flex items-center justify-end bg-gray-100 p-2 dark:bg-gray-800">
+      <div className="flex items-center gap-4">
+        {/* Font Size Controls */}
+        <button
+          onClick={decreaseFontSize}
+          className="rounded-md bg-gray-200 px-2 py-1 text-sm font-medium dark:bg-gray-700"
+          aria-label="Decrease font size"
+        >
+          A-
+        </button>
+        <button
+          onClick={resetFontSize}
+          className="rounded-md bg-gray-200 px-2 py-1 text-sm font-medium dark:bg-gray-700"
+          aria-label="Reset font size"
+        >
+          A
+        </button>
+        <button
+          onClick={increaseFontSize}
+          className="rounded-md bg-gray-200 px-2 py-1 text-sm font-medium dark:bg-gray-700"
+          aria-label="Increase font size"
+        >
+          A+
+        </button>
+
+        {/* Vertical Divider */}
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+
+        {/* Translation and Dark Mode */}
+        <Dropdown
+          label={<HiTranslate className="h-5 w-5" />}
+          arrowIcon={false}
+          inline
+        >
+          <DropdownItem onClick={() => changeLanguage("en")}>English</DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("hi")}>हिन्दी</DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("mr")}>मराठी</DropdownItem>
+        </Dropdown>
+        <DarkThemeToggle />
       </div>
-    </div>
+    </header>
+  );
+}
+
+export function Header({ translations, language }: HeaderProps) {
+  const t = translations[language];
+
+  return (
+    <Navbar fluid>
+      <NavbarBrand href="https://loksamarth.gov.in" target="/_blank">
+        <img
+          src="/Logo.png"
+          className="mr-1 h-6 sm:h-9"
+          alt="LOKSamarth Logo"
+        />
+        <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+          {t.appName}
+        </span>
+      </NavbarBrand>
+      <div className="flex items-center gap-3 md:order-2">
+        <Dropdown
+          label={t.login}
+          renderTrigger={() => (
+            <Button className="bg-black text-white hover:bg-gray-500 dark:bg-black dark:hover:bg-gray-500">
+              {t.login}
+            </Button>
+          )}
+        >
+          <DropdownItem href="/user-login">{t.user}</DropdownItem>
+          <DropdownItem href="/admin-login">{t.admin}</DropdownItem>
+        </Dropdown>
+        <NavbarToggle />
+      </div>
+      <NavbarCollapse>
+        <NavbarLink href="#">{t.home}</NavbarLink>
+        <NavbarLink href="#">{t.about}</NavbarLink>
+        <NavbarLink href="#">{t.services}</NavbarLink>
+        <NavbarLink href="#">{t.resources}</NavbarLink>
+        <NavbarLink href="#">{t.guidelines}</NavbarLink>
+        <NavbarLink href="#contact">{t.contact}</NavbarLink>
+      </NavbarCollapse>
+    </Navbar>
   );
 }
