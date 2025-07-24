@@ -58,12 +58,13 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
-          password,
-          groupName,
-          district,
-          phoneNumber: countryCode + phoneNumber,
-          email,
+          loginID: username,
+          password:password,
+          groupName:groupName,
+          district:district,
+          groupPhoneNumber: countryCode + phoneNumber,
+          groupEmail: email,
+          createdBy: username,
         }),
       });
 

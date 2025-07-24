@@ -37,10 +37,10 @@ export interface NewMemberData {
 
 interface AddMemberSidebarProps {
   onAddMember: (memberData: NewMemberData) => void;
-  groupId: string; // Add groupId prop
+  groupID: string;
 }
 
-export function AddMemberSidebar({ onAddMember, groupId }: AddMemberSidebarProps) {
+export function AddMemberSidebar({ onAddMember, groupID }: AddMemberSidebarProps) {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
   const [name, setName] = useState("");
@@ -137,7 +137,7 @@ export function AddMemberSidebar({ onAddMember, groupId }: AddMemberSidebarProps
       return;
     }
     try {
-      const res = await fetchWithAuth(`groups/${groupId}/members`, {
+      const res = await fetchWithAuth(`groups/${groupID}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

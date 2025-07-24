@@ -32,75 +32,42 @@ import {
   HiCheckCircle, // For status card
   HiMap, // For district card
 } from "react-icons/hi";
+import { fetchWithAuth } from "../utils";
 
-// Member interface
+// Define types for Group and Member
 interface Member {
   id: string;
   name: string;
-  dob: string;
-  sex: string;
+  dob?: string;
+  sex?: string;
   phone: string;
   email: string;
-  aadhar: string;
-  pan: string;
-  bankName: string;
-  bankAccount: string;
-  ifsc: string;
-  businessInterest: string;
+  aadhar?: string;
+  pan?: string;
+  bankName?: string;
+  bankAccount?: string;
+  ifsc?: string;
+}
+interface Application {
+  applicationID: string;
+  status: string;
+}
+interface Interest {
+  name: string;
 }
 
-// GroupStats interface
-interface GroupStats {
-  totalMembers: number;
-  groupName: string;
-  groupId: string;
+interface Group {
+  groupID: string;
+  groupName?: string;
+  members: Member[];
+  district: string;
+  applications: Application[];
+  interests: Interest[];
 }
 
-// Add mock data for groups and their members
-const mockGroups = [
-  {
-    groupId: "GRP-12345",
-    businessInterest: "Tailoring",
-    loanAmount: "",
-    members: [
-      {
-        id: "MEM-001",
-        name: "Jaya Patil",
-        email: "jaya.patil@example.com",
-        phone: "1234567890",
-      },
-      {
-        id: "MEM-002",
-        name: "Sunita Sharma",
-        email: "sunita.sharma@example.com",
-        phone: "0987654321",
-      },
-    ],
-  },
-  {
-    groupId: "GRP-67890",
-    businessInterest: "Handicrafts",
-    loanAmount: "",
-    members: [
-      {
-        id: "MEM-003",
-        name: "Kavita Singh",
-        email: "kavita.singh@example.com",
-        phone: "1122334455",
-      },
-      {
-        id: "MEM-004",
-        name: "Meena Kumari",
-        email: "meena.kumari@example.com",
-        phone: "5566778899",
-      },
-    ],
-  },
-];
 
 export default function UserDashboardPage() {
-  const [stats, setStats] = useState<GroupStats | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -110,107 +77,43 @@ export default function UserDashboardPage() {
   const [editableMember, setEditableMember] = useState<Member | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const membersPerPage = 5;
-  const [groups, setGroups] = useState(mockGroups);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [businessInterest, setBusinessInterest] = useState<string | null>(null);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+  const [district, setDistrict] = useState<string | null>(null);
 
-  // Combined useEffect to fetch all initial data
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchGroups = async () => {
       setLoading(true);
       setLoadingError(null);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const mockStats: GroupStats = {
-          totalMembers: 5,
-          groupName: "Awesome Coders",
-          groupId: "GRP-12345",
-        };
-        setStats(mockStats);
-
-        const mockMembers: Member[] = [
-          {
-            id: "MEM-001",
-            name: "Jaya Patil",
-            dob: "1990-01-15",
-            sex: "Female",
-            phone: "1234567890",
-            email: "jaya.patil@example.com",
-            aadhar: "1234 5678 9012",
-            pan: "ABCDE1234F",
-            bankName: "Bank of Example",
-            bankAccount: "9876543210",
-            ifsc: "EXAM0001234",
-            businessInterest: "Tailoring",
-          },
-          {
-            id: "MEM-002",
-            name: "Sunita Sharma",
-            dob: "1985-05-20",
-            sex: "Female",
-            phone: "0987654321",
-            email: "sunita.sharma@example.com",
-            aadhar: "9876 5432 1098",
-            pan: "FGHIJ5678K",
-            bankName: "Another Bank",
-            bankAccount: "0123456789",
-            ifsc: "ANOT0005678",
-            businessInterest: "Handicrafts",
-          },
-          {
-            id: "MEM-003",
-            name: "Kavita Singh",
-            dob: "1993-03-22",
-            sex: "Female",
-            phone: "1122334455",
-            email: "kavita.singh@example.com",
-            aadhar: "1122 3344 5566",
-            pan: "QWERT1234Y",
-            bankName: "Example Credit Union",
-            bankAccount: "1122334455",
-            ifsc: "EXCU0001122",
-            businessInterest: "Pottery",
-          },
-          {
-            id: "MEM-004",
-            name: "Meena Kumari",
-            dob: "1988-11-10",
-            sex: "Female",
-            phone: "5566778899",
-            email: "meena.kumari@example.com",
-            aadhar: "5566 7788 9900",
-            pan: "ZXCVB5678N",
-            bankName: "National Bank",
-            bankAccount: "5566778899",
-            ifsc: "NATB0005566",
-            businessInterest: "Spice Making",
-          },
-          {
-            id: "MEM-005",
-            name: "Rekha Devi",
-            dob: "1995-07-30",
-            sex: "Female",
-            phone: "9988776655",
-            email: "rekha.devi@example.com",
-            aadhar: "9988 7766 5544",
-            pan: "ASDFG9876M",
-            bankName: "Community Bank",
-            bankAccount: "9988776655",
-            ifsc: "COMB0009988",
-            businessInterest: "Weaving",
-          },
-        ];
-        setMembers(mockMembers);
+        if (groups.length === 0) {
+        const res = await fetchWithAuth("groups");
+        if (!res.ok) throw new Error("Failed to fetch groups");
+        const data = await res.json();
+        setGroups(data || []);
+      }
       } catch (error) {
         setLoadingError(
-          error instanceof Error ? error.message : "An unknown error occurred.",
+          error instanceof Error ? error.message : "An unknown error occurred."
         );
       } finally {
         setLoading(false);
       }
     };
+    fetchGroups();
+  }, [groups]);
 
-    fetchData();
-  }, []);
+  // Get all members from all groups (flattened)
+  const allMembers = groups.flatMap((g) => g.members || []);
+  const paginatedMembers = useMemo(() => {
+    const startIndex = (currentPage - 1) * membersPerPage;
+    return allMembers.slice(startIndex, startIndex + membersPerPage);
+  }, [allMembers, currentPage]);
+
+  // Helper to find a group for a given member
+  const findGroupForMember = (memberId: string) => groups.find(g => g.members.some(m => m.id === memberId));
 
   const handleViewDetails = (member: Member) => {
     setSelectedMember(member);
@@ -221,9 +124,21 @@ export default function UserDashboardPage() {
 
   const handleSaveChanges = () => {
     if (editableMember) {
-      setMembers(
-        members.map((m) => (m.id === editableMember.id ? editableMember : m)),
-      );
+      const group = findGroupForMember(editableMember.id);
+      if (group) {
+        setGroups(
+          groups.map((g) =>
+            g.groupID === group.groupID
+              ? {
+                  ...g,
+                  members: g.members.map((m: Member) =>
+                    m.id === editableMember.id ? editableMember : m,
+                  ),
+                }
+              : g,
+          ),
+        );
+      }
       setIsEditMode(false);
       setSelectedMember(editableMember); // Update the view with saved data
     }
@@ -231,7 +146,19 @@ export default function UserDashboardPage() {
 
   const handleDeleteMember = () => {
     if (selectedMember) {
-      setMembers(members.filter((m) => m.id !== selectedMember.id));
+      const group = findGroupForMember(selectedMember.id);
+      if (group) {
+        setGroups(
+          groups.map((g) =>
+            g.groupID === group.groupID
+              ? {
+                  ...g,
+                  members: g.members.filter((m: Member) => m.id !== selectedMember.id),
+                }
+              : g,
+          ),
+        );
+      }
       setOpenDeleteModal(false);
       setOpenModal(false);
       setSelectedMember(null);
@@ -250,40 +177,9 @@ export default function UserDashboardPage() {
     setCurrentPage(page);
   };
 
-  const paginatedMembers = useMemo(() => {
-    const startIndex = (currentPage - 1) * membersPerPage;
-    return members.slice(startIndex, startIndex + membersPerPage);
-  }, [members, currentPage]);
-
-  const handleLoanAmountChange = (groupId: string, value: string) => {
-    setGroups((prev) =>
-      prev.map((g) =>
-        g.groupId === groupId ? { ...g, loanAmount: value } : g,
-      ),
-    );
-  };
-
-  const handleSubmitApplication = (groupId: string) => {
-    const group = groups.find((g) => g.groupId === groupId);
-    alert(
-      `Application submitted for ${group?.groupId} with loan amount: ${group?.loanAmount}`,
-    );
-  };
-
   const handleExpandGroup = (groupId: string) => {
     setExpandedGroup((prev) => (prev === groupId ? null : groupId));
   };
-
-  // Add mock applicationId and businessInterest for the dashboard summary
-  const applicationId = "APP-98765";
-  const dashboardBusinessInterest =
-    stats?.groupId === "GRP-12345" ? "Tailoring" : "Handicrafts";
-
-  // Add mock status value
-  const dashboardStatus = "Active";
-
-  // Add mock district value
-  const dashboardDistrict = "Pune";
 
   return (
     <div className="w-full overflow-y-auto">
@@ -313,7 +209,7 @@ export default function UserDashboardPage() {
                   {loading ? (
                     <Spinner size="sm" />
                   ) : (
-                    (stats?.totalMembers ?? "N/A")
+                    (groups.reduce((sum, g) => sum + g.members?.length, 0) ?? "N/A")
                   )}
                 </p>
               </div>
@@ -330,7 +226,7 @@ export default function UserDashboardPage() {
                   {loading ? (
                     <Spinner size="sm" />
                   ) : (
-                    (stats?.groupName ?? "N/A")
+                    (groups[0]?.groupName ?? "N/A")
                   )}
                 </p>
               </div>
@@ -344,7 +240,7 @@ export default function UserDashboardPage() {
               <div>
                 <p className="text-gray-500 dark:text-gray-400">Group ID</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {loading ? <Spinner size="sm" /> : (stats?.groupId ?? "N/A")}
+                  {loading ? <Spinner size="sm" /> : (groups[0]?.groupID ?? "N/A")}
                 </p>
               </div>
             </div>
@@ -352,14 +248,19 @@ export default function UserDashboardPage() {
           <Card className="w-full">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-800">
-                <HiClipboardList className="h-6 w-6 text-yellow-600 dark:text-yellow-300" />
+                {/* You can use an icon here if desired */}
+                <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">ID</span>
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Application ID
-                </p>
+                <p className="text-gray-500 dark:text-gray-400">Application ID</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {applicationId}
+                  {loading ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    groups.length > 0 && groups[0].applications.length > 0
+                      ? groups[0].applications.map(app => app.applicationID).join(", ")
+                      : "N/A"
+                  )}
                 </p>
               </div>
             </div>
@@ -367,14 +268,16 @@ export default function UserDashboardPage() {
           <Card className="w-full">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-800">
-                <HiClipboardList className="h-6 w-6 text-pink-600 dark:text-pink-300" />
+                <span className="text-lg font-bold text-pink-700 dark:text-pink-300">ST</span>
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Business Interest
-                </p>
+                <p className="text-gray-500 dark:text-gray-400">Application Status</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {dashboardBusinessInterest}
+                  {loading ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    groups[0]?.applications[0]?.status || "N/A"
+                  )}
                 </p>
               </div>
             </div>
@@ -385,9 +288,11 @@ export default function UserDashboardPage() {
                 <HiCheckCircle className="h-6 w-6 text-green-600 dark:text-green-300" />
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Application Status</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Business Interest
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {dashboardStatus}
+                  {groups[0]?.interests[0]?.name || "N/A"}
                 </p>
               </div>
             </div>
@@ -400,7 +305,7 @@ export default function UserDashboardPage() {
               <div>
                 <p className="text-gray-500 dark:text-gray-400">District</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {dashboardDistrict}
+                  {groups[0]?.district || "N/A"}
                 </p>
               </div>
             </div>
@@ -413,7 +318,7 @@ export default function UserDashboardPage() {
             Quick Actions
           </h2>
           <div className="flex flex-wrap gap-4">
-            <Button as={Link} href="/user-dashboard/members">
+            <Button as={Link} href={`/user-dashboard/members?groupID=${groups[0]?.groupID}`}>
               <HiUsers className="mr-2 h-5 w-5" />
               Add Members
             </Button>
@@ -517,11 +422,11 @@ export default function UserDashboardPage() {
                   </TableBody>
                 </Table>
               </div>
-              {members.length > membersPerPage && (
+              {allMembers.length > membersPerPage && (
                 <div className="flex items-center justify-center pt-4 text-center">
                   <Pagination
                     currentPage={currentPage}
-                    totalPages={Math.ceil(members.length / membersPerPage)}
+                    totalPages={Math.ceil(allMembers.length / membersPerPage)}
                     onPageChange={onPageChange}
                   />
                 </div>

@@ -22,6 +22,7 @@ import {
 import { AddMemberSidebar, type NewMemberData } from "../AddMemberSidebar";
 import Image from "next/image";
 import { fetchWithAuth } from "@/app/utils";
+import { useSearchParams } from "next/navigation";
 
 // The Member interface now includes a photo property and business interest.
 interface Member {
@@ -39,7 +40,9 @@ interface Member {
   photo: string; // URL to the photo
 }
 
-export function MembersPage({ groupId }: { groupId: string }) {
+export default function MembersPage() {
+  const searchParams = useSearchParams();
+  const groupID = searchParams.get("groupID");
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [membersError, setMembersError] = useState<string | null>(null);
@@ -87,7 +90,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
       setLoadingMembers(true);
       setMembersError(null);
       try {
-        const res = await fetchWithAuth(`groups/${groupId}/members`);
+        const res = await fetchWithAuth(`groups/${groupID}/members`);
         if (!res.ok) throw new Error("Failed to fetch members");
         const data = await res.json();
         setMembers(data.members || []);
@@ -98,7 +101,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
       }
     };
     fetchMembers();
-  }, [groupId]);
+  }, [groupID]);
 
   const handleAddMember = (memberData: NewMemberData) => {
     // memberData may not have id, so refetch members after add
@@ -108,7 +111,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
     (async () => {
       setLoadingMembers(true);
       try {
-        const res = await fetchWithAuth(`groups/${groupId}/members`);
+        const res = await fetchWithAuth(`groups/${groupID}/members`);
         if (res.ok) {
           const data = await res.json();
           setMembers(data.members || []);
@@ -126,16 +129,16 @@ export function MembersPage({ groupId }: { groupId: string }) {
 
     try {
       // In a real app, you would get the group ID from the session or props
-      const groupId = "GRP-12345";
-      // const response = await fetch(`/api/v1/groups/${groupId}/members`, {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify(members),
-      // });
+      // const groupID = "GRP-12345";
+      const response = await fetchWithAuth(`groups/${groupID}/members`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(members),
+      });
 
-      // if (!response.ok) {
-      //     throw new Error('Failed to submit member data.');
-      // }
+      if (!response.ok) {
+          throw new Error('Failed to submit member data.');
+      }
 
       // Mocking a successful API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -164,7 +167,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
       setSubmitError(null);
       try {
         const res = await fetchWithAuth(
-          `groups/${groupId}/members/${editableMember.id}`,
+          `groups/${groupID}/members/${editableMember.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -194,7 +197,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
       setSubmitError(null);
       try {
         const res = await fetchWithAuth(
-          `groups/${groupId}/members/${selectedMember.id}`,
+          `groups/${groupID}/members/${selectedMember.id}`,
           {
             method: "DELETE",
           },
@@ -222,13 +225,22 @@ export function MembersPage({ groupId }: { groupId: string }) {
     }
   };
 
+  if (!groupID) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-2 sm:px-4 mt-8">
+        <h1 className="text-2xl font-bold mb-4">Group Members</h1>
+        <p className="text-red-600">No group selected. Please go back and select a group.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-4xl px-2 sm:px-4">
       <h1 className="mt-4 mb-2 text-3xl font-bold">Group Members</h1>
       <div className="mb-4 text-gray-600">
-        <span className="font-semibold">Group Name:</span> Awesome Coders
+        <span className="font-semibold">Group Name:</span> 
         <br />
-        <span className="font-semibold">Group ID:</span> {groupId}
+        <span className="font-semibold">Group ID:</span> 
       </div>
       {loadingMembers ? (
         <div className="my-8 flex justify-center">
@@ -295,7 +307,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
         <p className="mb-4 text-sm text-gray-500">
           Fill out the form below to add a new member to your group.
         </p>
-        <AddMemberSidebar onAddMember={handleAddMember} groupId={groupId} />
+        <AddMemberSidebar onAddMember={handleAddMember} groupID={groupID} />
       </div>
       {/* Member Details Modal */}
       <Modal
@@ -531,8 +543,8 @@ export function MembersPage({ groupId }: { groupId: string }) {
   );
 }
 
-// Default export for Next.js routing, pass a sample groupId for now
-export default function MembersPageWrapper() {
-  // In a real app, get groupId from router, context, or props
-  return <MembersPage groupId="GRP-12345" />;
-}
+// Default export for Next.js routing, pass a sample groupID for now
+// export default function MembersPageWrapper() {
+//   // In a real app, get groupID from router, context, or props
+//   return <MembersPage groupID={{}} />;
+// }
