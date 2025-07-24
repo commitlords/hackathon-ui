@@ -3,10 +3,7 @@
 import {
   Alert,
   Badge,
-  Button,
   Card,
-  Dropdown,
-  DropdownItem,
   Spinner,
   Table,
   TableBody,
@@ -52,7 +49,11 @@ export default function LoanStatusPage() {
       const data = await res.json();
       setApplications(data.applications || []);
     } catch (err) {
-      setError("Could not load applications.");
+      setError(
+        err instanceof Error
+          ? `"${err.message}"`
+          : "Could not load applications.",
+      );
     } finally {
       setLoading(false);
     }
@@ -84,7 +85,11 @@ export default function LoanStatusPage() {
       );
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err) {
-      setError("Failed to update status. Please try again.");
+      setError(
+        err instanceof Error
+          ? `"${err.message}"`
+          : "Failed to update status. Please try again.",
+      );
     } finally {
       setActionLoading(null);
     }

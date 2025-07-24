@@ -8,7 +8,6 @@ import {
   Label,
   Spinner,
   TextInput,
-  DarkThemeToggle,
 } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,7 +42,7 @@ export default function AdminLoginPage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
         // Optionally store token/admin info here (e.g., localStorage)
         router.push("/admin-dashboard");
       } else {

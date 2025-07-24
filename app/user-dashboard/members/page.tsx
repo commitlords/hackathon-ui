@@ -7,18 +7,13 @@ import {
   Modal,
   Label,
   TextInput,
-  Select,
   Spinner,
   ModalBody,
   ModalFooter,
   ModalHeader,
 } from "flowbite-react";
 import { useState, ChangeEvent, useEffect } from "react";
-import {
-  HiUsers,
-  HiOutlineExclamationCircle,
-  HiCheckCircle,
-} from "react-icons/hi";
+import { HiUsers, HiOutlineExclamationCircle } from "react-icons/hi";
 import { AddMemberSidebar, type NewMemberData } from "../AddMemberSidebar";
 import Image from "next/image";
 
@@ -42,44 +37,14 @@ export function MembersPage({ groupId }: { groupId: string }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [membersError, setMembersError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [editableMember, setEditableMember] = useState<Member | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-
-  const [businessInterestsList, setBusinessInterestsList] = useState<string[]>(
-    [],
-  );
-  const [loadingInterests, setLoadingInterests] = useState(true);
-
-  // Fetch business interests when the component mounts
-  useEffect(() => {
-    const fetchBusinessInterests = async () => {
-      setLoadingInterests(true);
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const mockData = [
-          "Tailoring",
-          "Handicrafts",
-          "Pottery",
-          "Spice Making",
-          "Weaving",
-          "Food Processing",
-        ];
-        setBusinessInterestsList(mockData);
-      } catch (error) {
-        console.error("Failed to fetch business interests:", error);
-      } finally {
-        setLoadingInterests(false);
-      }
-    };
-
-    fetchBusinessInterests();
-  }, []);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -91,7 +56,9 @@ export function MembersPage({ groupId }: { groupId: string }) {
         const data = await res.json();
         setMembers(data.members || []);
       } catch (err) {
-        setMembersError("Could not load members.");
+        setMembersError(
+          err instanceof Error ? `"${err.message}"` : "Could not load members.",
+        );
       } finally {
         setLoadingMembers(false);
       }
@@ -116,38 +83,6 @@ export function MembersPage({ groupId }: { groupId: string }) {
         setLoadingMembers(false);
       }
     })();
-  };
-
-  const handleSubmitAllMembers = async () => {
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setSuccessMessage(null);
-
-    try {
-      // In a real app, you would get the group ID from the session or props
-      const groupId = "GRP-12345";
-      // const response = await fetch(`/api/v1/groups/${groupId}/members`, {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify(members),
-      // });
-
-      // if (!response.ok) {
-      //     throw new Error('Failed to submit member data.');
-      // }
-
-      // Mocking a successful API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Submitting the following data to the backend:", members);
-
-      setSuccessMessage("All member data submitted successfully!");
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "An unknown error occurred.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleViewDetails = (member: Member) => {
@@ -180,7 +115,11 @@ export function MembersPage({ groupId }: { groupId: string }) {
         setSuccessMessage("Member updated successfully!");
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err) {
-        setSubmitError("Failed to update member.");
+        setMembersError(
+          err instanceof Error
+            ? `"${err.message}"`
+            : "Failed to update member.",
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -206,7 +145,11 @@ export function MembersPage({ groupId }: { groupId: string }) {
         setSuccessMessage("Member deleted successfully!");
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err) {
-        setSubmitError("Failed to delete member.");
+        setMembersError(
+          err instanceof Error
+            ? `"${err.message}"`
+            : "Failed to delete member.",
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -289,6 +232,11 @@ export function MembersPage({ groupId }: { groupId: string }) {
           </div>
         </>
       )}
+      {successMessage && (
+        <Alert color="success" className="mb-4">
+          {successMessage}
+        </Alert>
+      )}
       <div className="mb-8 rounded-lg bg-white p-4 shadow">
         <h3 className="mb-2 text-lg font-bold">Add New Member</h3>
         <p className="mb-4 text-sm text-gray-500">
@@ -309,91 +257,98 @@ export function MembersPage({ groupId }: { groupId: string }) {
         </ModalHeader>
         <ModalBody>
           {isEditMode && editableMember ? (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <TextInput
-                  id="name"
-                  value={editableMember?.name ?? ""}
-                  onChange={handleInputChange}
-                />
+            <>
+              {submitError && (
+                <Alert color="failure" className="mb-2">
+                  {submitError}
+                </Alert>
+              )}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Full Name</Label>
+                  <TextInput
+                    id="name"
+                    value={editableMember?.name ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <TextInput
+                    id="email"
+                    type="email"
+                    value={editableMember?.email ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
+                  <TextInput
+                    id="phone"
+                    type="tel"
+                    value={editableMember?.phone ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dob">Date of Birth</Label>
+                  <TextInput
+                    id="dob"
+                    type="date"
+                    value={editableMember?.dob ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sex">Sex</Label>
+                  <TextInput
+                    id="sex"
+                    value={editableMember?.sex ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="aadhar">Aadhar</Label>
+                  <TextInput
+                    id="aadhar"
+                    value={editableMember?.aadhar ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="pan">PAN</Label>
+                  <TextInput
+                    id="pan"
+                    value={editableMember?.pan ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bankName">Bank Name</Label>
+                  <TextInput
+                    id="bankName"
+                    value={editableMember?.bankName ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bankAccount">Bank Account No.</Label>
+                  <TextInput
+                    id="bankAccount"
+                    value={editableMember?.bankAccount ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ifsc">IFSC Code</Label>
+                  <TextInput
+                    id="ifsc"
+                    value={editableMember?.ifsc ?? ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <TextInput
-                  id="email"
-                  type="email"
-                  value={editableMember?.email ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <TextInput
-                  id="phone"
-                  type="tel"
-                  value={editableMember?.phone ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="dob">Date of Birth</Label>
-                <TextInput
-                  id="dob"
-                  type="date"
-                  value={editableMember?.dob ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="sex">Sex</Label>
-                <TextInput
-                  id="sex"
-                  value={editableMember?.sex ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="aadhar">Aadhar</Label>
-                <TextInput
-                  id="aadhar"
-                  value={editableMember?.aadhar ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="pan">PAN</Label>
-                <TextInput
-                  id="pan"
-                  value={editableMember?.pan ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="bankName">Bank Name</Label>
-                <TextInput
-                  id="bankName"
-                  value={editableMember?.bankName ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="bankAccount">Bank Account No.</Label>
-                <TextInput
-                  id="bankAccount"
-                  value={editableMember?.bankAccount ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ifsc">IFSC Code</Label>
-                <TextInput
-                  id="ifsc"
-                  value={editableMember?.ifsc ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
+            </>
           ) : (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -484,8 +439,14 @@ export function MembersPage({ groupId }: { groupId: string }) {
         <ModalFooter>
           {isEditMode ? (
             <>
-              <Button onClick={handleSaveChanges}>Save Changes</Button>
-              <Button color="gray" onClick={() => setIsEditMode(false)}>
+              <Button onClick={handleSaveChanges} disabled={isSubmitting}>
+                {isSubmitting ? <Spinner size="sm" /> : "Save Changes"}
+              </Button>
+              <Button
+                color="gray"
+                onClick={() => setIsEditMode(false)}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
             </>

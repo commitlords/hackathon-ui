@@ -8,7 +8,6 @@ import {
   Label,
   Spinner,
   TextInput,
-  DarkThemeToggle,
 } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,7 +44,6 @@ export default function UserLoginPage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
         // Optionally store token/user info here (e.g., localStorage)
         setSuccess("Login successful! Redirecting to dashboard...");
         router.push("/user-dashboard");

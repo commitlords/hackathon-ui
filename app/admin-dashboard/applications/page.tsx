@@ -20,17 +20,14 @@ import {
   Card,
 } from "flowbite-react";
 import {
-  HiOutlineUserGroup,
   HiOutlineCheckCircle,
   HiOutlineClipboardCheck,
-  HiOutlineEye,
   HiOutlineXCircle,
-  HiOutlineChevronDown,
-  HiOutlineChevronRight,
   HiOutlineCalendar,
   HiOutlineCreditCard,
   HiOutlineShieldCheck,
 } from "react-icons/hi";
+import Image from "next/image";
 
 interface Member {
   id: string;
@@ -89,7 +86,7 @@ export default function AdminApplicationsPage() {
         if (!res.ok) throw new Error("Failed to fetch applications");
         const data = await res.json();
         setApplications(data.applications || []);
-      } catch (err) {
+      } catch {
         setError("Could not load applications.");
       } finally {
         setLoading(false);
@@ -118,7 +115,7 @@ export default function AdminApplicationsPage() {
       );
       setSuccessMsg(data.message || "Application updated successfully");
       setTimeout(() => setSuccessMsg(null), 2500);
-    } catch (err) {
+    } catch {
       setError("Failed to update application.");
     } finally {
       setActionLoading(null);
@@ -320,10 +317,12 @@ export default function AdminApplicationsPage() {
                                       <TableCell>{m.ifsc}</TableCell>
                                       <TableCell>
                                         {m.photo ? (
-                                          <img
+                                          <Image
                                             src={m.photo}
                                             alt="Member"
-                                            className="h-10 w-10 rounded-full object-cover"
+                                            width={40}
+                                            height={40}
+                                            className="rounded-full object-cover"
                                           />
                                         ) : (
                                           <span>-</span>

@@ -51,7 +51,11 @@ export default function LoanRequestsPage() {
           setSelectedAppId(validApps[0].applicationId);
         }
       } catch (err) {
-        setError("Could not load applications ready for loan requests.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Could not load applications ready for loan requests.",
+        );
       } finally {
         setLoading(false);
       }
@@ -116,7 +120,11 @@ export default function LoanRequestsPage() {
           : "",
       );
     } catch (err) {
-      setSubmitError("Failed to send the loan request. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update status. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }

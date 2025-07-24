@@ -56,48 +56,6 @@ interface GroupStats {
   groupId: string;
 }
 
-// Add mock data for groups and their members
-const mockGroups = [
-  {
-    groupId: "GRP-12345",
-    businessInterest: "Tailoring",
-    loanAmount: "",
-    members: [
-      {
-        id: "MEM-001",
-        name: "Jaya Patil",
-        email: "jaya.patil@example.com",
-        phone: "1234567890",
-      },
-      {
-        id: "MEM-002",
-        name: "Sunita Sharma",
-        email: "sunita.sharma@example.com",
-        phone: "0987654321",
-      },
-    ],
-  },
-  {
-    groupId: "GRP-67890",
-    businessInterest: "Handicrafts",
-    loanAmount: "",
-    members: [
-      {
-        id: "MEM-003",
-        name: "Kavita Singh",
-        email: "kavita.singh@example.com",
-        phone: "1122334455",
-      },
-      {
-        id: "MEM-004",
-        name: "Meena Kumari",
-        email: "meena.kumari@example.com",
-        phone: "5566778899",
-      },
-    ],
-  },
-];
-
 export default function UserDashboardPage() {
   const [stats, setStats] = useState<GroupStats | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -110,8 +68,6 @@ export default function UserDashboardPage() {
   const [editableMember, setEditableMember] = useState<Member | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const membersPerPage = 5;
-  const [groups, setGroups] = useState(mockGroups);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
   // Combined useEffect to fetch all initial data
   useEffect(() => {
@@ -254,25 +210,6 @@ export default function UserDashboardPage() {
     const startIndex = (currentPage - 1) * membersPerPage;
     return members.slice(startIndex, startIndex + membersPerPage);
   }, [members, currentPage]);
-
-  const handleLoanAmountChange = (groupId: string, value: string) => {
-    setGroups((prev) =>
-      prev.map((g) =>
-        g.groupId === groupId ? { ...g, loanAmount: value } : g,
-      ),
-    );
-  };
-
-  const handleSubmitApplication = (groupId: string) => {
-    const group = groups.find((g) => g.groupId === groupId);
-    alert(
-      `Application submitted for ${group?.groupId} with loan amount: ${group?.loanAmount}`,
-    );
-  };
-
-  const handleExpandGroup = (groupId: string) => {
-    setExpandedGroup((prev) => (prev === groupId ? null : groupId));
-  };
 
   // Add mock applicationId and businessInterest for the dashboard summary
   const applicationId = "APP-98765";

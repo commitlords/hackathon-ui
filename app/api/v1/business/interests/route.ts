@@ -9,7 +9,15 @@ const mockBusinessInterests = [
 ];
 
 export function GET() {
-  return NextResponse.json({ interests: mockBusinessInterests });
+  try {
+    return NextResponse.json({ interests: mockBusinessInterests });
+  } catch (err) {
+    const errorMsg =
+      err instanceof Error
+        ? `"${err.message}"`
+        : "Could not load business interests.";
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
+  }
 }
 
 export function POST() {

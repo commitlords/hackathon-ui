@@ -59,7 +59,7 @@ export default function AdminInboxPage() {
         if (!res.ok) throw new Error("Failed to fetch inbox");
         const data = await res.json();
         setMessages(data.messages || []);
-      } catch (err) {
+      } catch {
         setError("Could not load inbox.");
       } finally {
         setLoading(false);

@@ -12,6 +12,7 @@ import {
   Dropdown,
   DropdownItem,
 } from "flowbite-react";
+import Image from "next/image";
 
 // Types for Header
 
@@ -132,10 +133,12 @@ export function Header({ translations, language }: HeaderProps) {
   return (
     <Navbar fluid>
       <NavbarBrand href="https://loksamarth.gov.in" target="/_blank">
-        <img
+        <Image
           src="/Logo.png"
-          className="mr-1 h-6 sm:h-9"
           alt="LOKSamarth Logo"
+          width={24}
+          height={24}
+          className="mr-1 h-6 sm:h-9"
         />
         <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
           {t.appName}

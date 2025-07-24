@@ -15,7 +15,6 @@ import {
   type FormEvent,
   type KeyboardEvent,
   ChangeEvent,
-  useEffect,
 } from "react";
 import { HiChevronDown, HiChevronUp, HiUserAdd, HiX } from "react-icons/hi";
 import Image from "next/image";
@@ -57,7 +56,6 @@ export function AddMemberSidebar({
   const [ifsc, setIfsc] = useState("");
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [photoFileId, setPhotoFileId] = useState<string | null>(null);
@@ -74,7 +72,6 @@ export function AddMemberSidebar({
 
     if (file) {
       // Create a new object URL and update the state
-      setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
       setIsUploadingPhoto(true);
       setApiError(null);
@@ -89,7 +86,7 @@ export function AddMemberSidebar({
         if (!res.ok) throw new Error("Photo upload failed");
         const data = await res.json();
         setPhotoFileId(data.fileId);
-      } catch (err) {
+      } catch {
         setApiError("Photo upload failed.");
         setPhotoFileId(null);
       } finally {
@@ -97,7 +94,6 @@ export function AddMemberSidebar({
       }
     } else {
       // If no file is selected (e.g., user clicked cancel), clear the preview
-      setPhotoFile(null);
       setPhotoPreview(null);
       setPhotoFileId(null);
     }
@@ -125,7 +121,6 @@ export function AddMemberSidebar({
 
   const handlePhotoRemove = () => {
     if (photoPreview) URL.revokeObjectURL(photoPreview);
-    setPhotoFile(null);
     setPhotoPreview(null);
     setPhotoFileId(null);
   };
@@ -171,11 +166,10 @@ export function AddMemberSidebar({
       setBankName("");
       setBankAccount("");
       setIfsc("");
-      setPhotoFile(null);
       setPhotoPreview(null);
       setPhotoFileId(null);
       setTimeout(() => setShowSuccess(false), 2500);
-    } catch (err) {
+    } catch {
       setApiError("Failed to add member.");
     }
   };

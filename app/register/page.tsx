@@ -9,7 +9,6 @@ import {
   Select,
   Spinner,
   TextInput,
-  DarkThemeToggle,
 } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -67,11 +66,8 @@ export default function RegisterPage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setSuccess("Registration successful! Redirecting to login page...");
-        setTimeout(() => {
-          router.push("/user-login");
-        }, 2000);
+        setSuccess("Registration successful! Redirecting to login...");
+        setTimeout(() => router.push("/user-login"), 1500);
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Registration failed. Please try again.");

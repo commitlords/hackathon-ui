@@ -1,6 +1,7 @@
 "use client";
 
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import Image from "next/image";
 
 const footerLinks = {
   quickLinks: [
@@ -30,7 +31,12 @@ export default function Footer() {
           {/* Logo and Description */}
           <div className="col-span-2 md:col-span-1">
             <a href="#" className="flex items-center">
-              <img src="/Logo.png" className="mr-3 h-8" alt="LOKSamarth Logo" />
+              <Image
+                src="/Logo.png"
+                alt="LOKSamarth Logo"
+                width={32}
+                height={32}
+              />
               <span className="self-center text-2xl font-semibold whitespace-nowrap">
                 LOKSamarth
               </span>

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { TopComponent } from "./components/top-container";
+import { useEffect } from "react";
 import ImageCarousel from "./components/image-carousel";
 import CardCarousel from "./components/card-carousel";
 import ContactUsSection from "./components/ContactUsSection";
@@ -11,29 +10,12 @@ import Footer from "./components/Footer";
 import LokSamarthMission from "./components/LokSamarthMission";
 import StatsSection from "./components/StatsSection";
 import { Header } from "./components/Header.jsx";
-import { useTranslation } from "react-i18next";
 import Chatbot from "./components/Chatbot";
 
 const Home = () => {
-  const [baseFontSize, setBaseFontSize] = useState(16);
-  const [language, setLanguage] = useState<"en" | "hi" | "mr">("en");
-  const { t } = useTranslation();
-
   useEffect(() => {
-    document.documentElement.style.fontSize = `${baseFontSize}px`;
-  }, [baseFontSize]);
-
-  const decreaseFontSize = () => {
-    setBaseFontSize((size) => Math.max(size - 2, 12));
-  };
-
-  const increaseFontSize = () => {
-    setBaseFontSize((size) => Math.min(size + 2, 24));
-  };
-
-  const resetFontSize = () => {
-    setBaseFontSize(16);
-  };
+    document.documentElement.style.fontSize = `16px`;
+  }, []);
 
   return (
     <>

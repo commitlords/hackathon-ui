@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card } from "flowbite-react";
+import { Card } from "flowbite-react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 

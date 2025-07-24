@@ -6,7 +6,6 @@ import {
   SidebarItemGroup,
   SidebarItems,
   SidebarLogo,
-  DarkThemeToggle,
   SidebarCollapse,
 } from "flowbite-react";
 import {

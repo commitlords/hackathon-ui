@@ -6,7 +6,6 @@ import {
   SidebarItemGroup,
   SidebarItems,
   SidebarLogo,
-  DarkThemeToggle,
 } from "flowbite-react";
 import {
   HiChartPie,

@@ -9,10 +9,19 @@ import Image from "next/image";
 // TypeScript declarations for browser speech APIs
 
 const SpeechRecognition =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   typeof window !== "undefined" &&
-  ((window as any).SpeechRecognition ||
-    (window as any).webkitSpeechRecognition);
+  ((
+    window as typeof window & {
+      SpeechRecognition?: typeof window.SpeechRecognition;
+      webkitSpeechRecognition?: typeof window.SpeechRecognition;
+    }
+  ).SpeechRecognition ||
+    (
+      window as typeof window & {
+        SpeechRecognition?: typeof window.SpeechRecognition;
+        webkitSpeechRecognition?: typeof window.SpeechRecognition;
+      }
+    ).webkitSpeechRecognition);
 const synth = typeof window !== "undefined" && window.speechSynthesis;
 
 export default function Chatbot() {
@@ -23,21 +32,18 @@ export default function Chatbot() {
   const [listening, setListening] = useState(false);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Start voice recognition
   const startListening = () => {
     if (!SpeechRecognition)
       return alert("Speech recognition not supported in this browser.");
     setListening(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recognition = new (SpeechRecognition as any)();
+    const recognition = new SpeechRecognition();
     recognition.lang = "en-IN";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
       setListening(false);
@@ -51,8 +57,7 @@ export default function Chatbot() {
   // Stop voice recognition
   const stopListening = () => {
     if (recognitionRef.current) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (recognitionRef.current as any).stop();
+      (recognitionRef.current as SpeechRecognition).stop();
       setListening(false);
     }
   };
@@ -84,7 +89,13 @@ export default function Chatbot() {
     } catch (e) {
       setMessages((prev) => [
         ...prev,
-        { role: "bot", content: "Sorry, something went wrong." },
+        {
+          role: "bot",
+          content:
+            e instanceof Error
+              ? `"${e.message}"`
+              : "Sorry, something went wrong.",
+        },
       ]);
     } finally {
       setLoading(false);

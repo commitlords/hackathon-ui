@@ -45,6 +45,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "flowbite-react";
+import Image from "next/image";
 
 const mockGroups = [
   {
@@ -124,7 +125,11 @@ export default function SubmitApplicationPage() {
         const data = await res.json();
         setBusinessInterests(data.interests || []);
       } catch (err) {
-        setErrorInterests("Could not load business interests.");
+        setErrorInterests(
+          err instanceof Error
+            ? `"${err.message}"`
+            : "Could not load business interests.",
+        );
       } finally {
         setLoadingInterests(false);
       }
@@ -165,7 +170,10 @@ export default function SubmitApplicationPage() {
       } catch (err) {
         setExpandedError((prev) => ({
           ...prev,
-          [groupId]: "Could not load members.",
+          [groupId]:
+            err instanceof Error
+              ? `"${err.message}"`
+              : "Could not load members.",
         }));
       } finally {
         setExpandedLoading((prev) => ({ ...prev, [groupId]: false }));
@@ -213,10 +221,10 @@ export default function SubmitApplicationPage() {
             : g,
         ),
       );
-    } catch (err) {
+    } catch {
       setSubmitResult({
         success: false,
-        message: "Failed to submit application. Please try again.",
+        message: "Failed to submit application.",
       });
     } finally {
       setSubmitting(false);
@@ -376,10 +384,12 @@ export default function SubmitApplicationPage() {
                                         <TableCell>{m.ifsc || "-"}</TableCell>
                                         <TableCell>
                                           {m.photo ? (
-                                            <img
+                                            <Image
                                               src={m.photo}
                                               alt="Member"
-                                              className="h-10 w-10 rounded-full object-cover"
+                                              width={40}
+                                              height={40}
+                                              className="rounded-full object-cover"
                                             />
                                           ) : (
                                             <span>-</span>
