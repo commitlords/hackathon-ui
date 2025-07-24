@@ -4,6 +4,10 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+html, body {
+  overflow-x: hidden;
+}
+
 .font-size-12 {
   font-size: 12px;
 }
