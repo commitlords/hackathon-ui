@@ -158,7 +158,12 @@ export default function AdminDashboardLayout({ children }: PropsWithChildren) {
               <SidebarItem href="/admin-dashboard/meetings" icon={HiCalendar}>
                 Meetings
               </SidebarItem>
-              <SidebarItem icon={HiLogout} onClick={() => { router.push('/'); }}>
+              <SidebarItem
+                icon={HiLogout}
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
                 Logout
               </SidebarItem>
             </SidebarItemGroup>
@@ -196,8 +201,7 @@ export default function AdminDashboardLayout({ children }: PropsWithChildren) {
         </header>
 
         <main className="relative flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 lg:p-8">
-          <div className="absolute top-4 right-4 hidden lg:block">
-          </div>
+          <div className="absolute top-4 right-4 hidden lg:block"></div>
           {children}
         </main>
       </div>

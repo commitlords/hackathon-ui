@@ -7,14 +7,14 @@ export function Component() {
   return (
     <Card
       className="max-w-sm"
-      imgAlt={t('card4.imgAlt')}
+      imgAlt={t("card4.imgAlt")}
       imgSrc="/card-img-4.png"
     >
       <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-        {t('card4.title')}
+        {t("card4.title")}
       </h5>
       <p className="font-normal text-gray-700 dark:text-gray-400">
-        {t('card4.desc')}
+        {t("card4.desc")}
       </p>
     </Card>
   );

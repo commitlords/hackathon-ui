@@ -34,12 +34,19 @@ export default function FaqSection() {
     <section className="bg-gray-50 py-16 dark:bg-gray-900">
       <div className="mx-auto max-w-4xl px-4">
         <div className="mb-12 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white">{t("faq.title")}</h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">{t("faq.description")}</p>
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
+            {t("faq.title")}
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+            {t("faq.description")}
+          </p>
         </div>
         <div className="space-y-4">
           {faqData.map((item, index) => (
-            <div key={index} className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div
+              key={index}
+              className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+            >
               <button
                 type="button"
                 className="flex w-full items-center justify-between p-5 font-medium text-gray-900 rtl:text-right dark:text-white"
@@ -54,7 +61,9 @@ export default function FaqSection() {
               </button>
               {openIndex === index && (
                 <div className="border-t border-gray-200 p-5 dark:border-gray-700">
-                  <p className="mb-2 text-gray-500 dark:text-gray-400">{item.answer}</p>
+                  <p className="mb-2 text-gray-500 dark:text-gray-400">
+                    {item.answer}
+                  </p>
                 </div>
               )}
             </div>

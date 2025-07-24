@@ -1,24 +1,24 @@
 "use client";
 
-import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 
 const footerLinks = {
   quickLinks: [
-    { name: 'About Us', href: '#' },
-    { name: 'Our Services', href: '#' },
-    { name: 'Resource Center', href: '#' },
-    { name: 'Contact', href: '#contact' },
+    { name: "About Us", href: "#" },
+    { name: "Our Services", href: "#" },
+    { name: "Resource Center", href: "#" },
+    { name: "Contact", href: "#contact" },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms & Conditions', href: '#' },
-    { name: 'Disclaimer', href: '#' },
+    { name: "Privacy Policy", href: "#" },
+    { name: "Terms & Conditions", href: "#" },
+    { name: "Disclaimer", href: "#" },
   ],
   social: [
-    { name: 'Facebook', icon: <Facebook className="h-6 w-6" />, href: '#' },
-    { name: 'Twitter', icon: <Twitter className="h-6 w-6" />, href: '#' },
-    { name: 'Instagram', icon: <Instagram className="h-6 w-6" />, href: '#' },
-    { name: 'LinkedIn', icon: <Linkedin className="h-6 w-6" />, href: '#' },
+    { name: "Facebook", icon: <Facebook className="h-6 w-6" />, href: "#" },
+    { name: "Twitter", icon: <Twitter className="h-6 w-6" />, href: "#" },
+    { name: "Instagram", icon: <Instagram className="h-6 w-6" />, href: "#" },
+    { name: "LinkedIn", icon: <Linkedin className="h-6 w-6" />, href: "#" },
   ],
 };
 
@@ -31,20 +31,28 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <a href="#" className="flex items-center">
               <img src="/Logo.png" className="mr-3 h-8" alt="LOKSamarth Logo" />
-              <span className="self-center text-2xl font-semibold whitespace-nowrap">LOKSamarth</span>
+              <span className="self-center text-2xl font-semibold whitespace-nowrap">
+                LOKSamarth
+              </span>
             </a>
             <p className="mt-4 text-gray-400">
-              Empowering rural communities through technology and financial inclusion.
+              Empowering rural communities through technology and financial
+              inclusion.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">Quick Links</h3>
+            <h3 className="text-sm font-semibold tracking-wider text-gray-300 uppercase">
+              Quick Links
+            </h3>
             <ul className="mt-4 space-y-2">
               {footerLinks.quickLinks.map((link) => (
                 <li key={link.name}>
-                  <a href={link.href} className="text-base text-gray-400 hover:text-white">
+                  <a
+                    href={link.href}
+                    className="text-base text-gray-400 hover:text-white"
+                  >
                     {link.name}
                   </a>
                 </li>
@@ -54,11 +62,16 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">Legal</h3>
+            <h3 className="text-sm font-semibold tracking-wider text-gray-300 uppercase">
+              Legal
+            </h3>
             <ul className="mt-4 space-y-2">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
-                  <a href={link.href} className="text-base text-gray-400 hover:text-white">
+                  <a
+                    href={link.href}
+                    className="text-base text-gray-400 hover:text-white"
+                  >
                     {link.name}
                   </a>
                 </li>
@@ -68,10 +81,16 @@ export default function Footer() {
 
           {/* Social Media */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-300">Follow Us</h3>
+            <h3 className="text-sm font-semibold tracking-wider text-gray-300 uppercase">
+              Follow Us
+            </h3>
             <div className="mt-4 flex space-x-4">
               {footerLinks.social.map((social) => (
-                <a key={social.name} href={social.href} className="text-gray-400 hover:text-white">
+                <a
+                  key={social.name}
+                  href={social.href}
+                  className="text-gray-400 hover:text-white"
+                >
                   <span className="sr-only">{social.name}</span>
                   {social.icon}
                 </a>
@@ -81,7 +100,10 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 border-t border-gray-700 pt-8 text-center text-base text-gray-400">
-          <p>&copy; {new Date().getFullYear()} LOKSamarth, Ministry of Rural Development. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} LOKSamarth, Ministry of Rural
+            Development. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

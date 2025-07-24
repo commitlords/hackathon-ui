@@ -3,7 +3,7 @@ import withFlowbiteReact from "flowbite-react/plugin/nextjs";
 import withPWA from "@ducanh2912/next-pwa";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
 };
 
 export default withPWA({

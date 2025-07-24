@@ -23,7 +23,7 @@ export function Header() {
           className="mr-1 h-6 sm:h-9"
           alt="LOKSamarth Logo"
         />
-        <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+        <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
           {t("title")}
         </span>
       </NavbarBrand>
@@ -52,4 +52,4 @@ export function Header() {
       </NavbarCollapse>
     </Navbar>
   );
-} 
+}
