@@ -1,5 +1,5 @@
 "use client";
-import { DarkThemeToggle } from "flowbite-react";
+import { useEffect, useState } from "react";
 import { HiTranslate } from "react-icons/hi";
 import { useTranslation } from "react-i18next";
 import {
@@ -46,7 +46,19 @@ export function TopComponent({
 }) {
   const { i18n } = useTranslation();
 
-  console.log('Current language:', i18n.language);
+  // Custom dark mode state (default: light)
+  const [isDark, setIsDark] = useState(false);
+
+  // Only change theme when user toggles
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark]);
+
+  const toggleDarkMode = () => setIsDark((d) => !d);
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -95,7 +107,13 @@ export function TopComponent({
           <DropdownItem onClick={() => changeLanguage("hi")}>हिन्दी</DropdownItem>
           <DropdownItem onClick={() => changeLanguage("mr")}>मराठी</DropdownItem>
         </Dropdown>
-        <DarkThemeToggle />
+        <button
+          onClick={toggleDarkMode}
+          className="rounded-md bg-gray-200 px-2 py-1 text-sm font-medium dark:bg-gray-700"
+          aria-label="Toggle dark mode"
+        >
+          {isDark ? "🌙" : "☀️"}
+        </button>
       </div>
     </header>
   );
