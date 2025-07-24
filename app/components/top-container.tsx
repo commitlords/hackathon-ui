@@ -24,12 +24,6 @@ export default function TopContainer({
     >
       <div className="h-full flex items-center justify-between px-5">
         <div className="h-full flex items-center gap-2 py-1">
-          <img
-            src="/DB-LOGO.png"
-            className="max-h-full max-w-full"
-            alt="Deutsche Bank"
-          />
-          <span className="font-bold">Deutsche Bank</span>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4 rounded-full border border-white px-2 py-0.5">

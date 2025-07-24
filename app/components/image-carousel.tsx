@@ -7,6 +7,7 @@ const images = [
   "/top-card-2.png",
   "/top-card-3.png",
   "/top-card-4.png",
+  "/top-card-5.png"
 ];
 
 export default function ImageCarousel() {
