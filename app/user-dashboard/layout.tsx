@@ -197,13 +197,11 @@ export default function UserDashboardLayout({ children }: PropsWithChildren) {
               LOKSamarth
             </span>
           </Link>
-          <DarkThemeToggle />
         </header>
 
         {/* Main Content */}
         <main className="relative flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 lg:p-8">
           <div className="absolute top-4 right-4 hidden lg:block">
-            <DarkThemeToggle />
           </div>
           {children}
         </main>
