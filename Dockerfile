@@ -21,3 +21,4 @@ EXPOSE ${PORT:-3000}
 
 # Start the Next.js application
 CMD ["npm", "start"]
+ 
