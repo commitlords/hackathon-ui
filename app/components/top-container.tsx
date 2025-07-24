@@ -34,7 +34,7 @@ type Translations = {
 
 interface HeaderProps {
   translations: Translations;
-  language: "en" | "hi";
+  language: "en" | "hi" ;
 }
 
 export function TopComponent({
@@ -45,6 +45,8 @@ export function TopComponent({
   setFontSize: (size: number) => void;
 }) {
   const { i18n } = useTranslation();
+
+  console.log('Current language:', i18n.language);
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
