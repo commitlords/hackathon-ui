@@ -51,17 +51,37 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // Mocking API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setSuccess("Registration successful! Redirecting to login page...");
-      setTimeout(() => {
-        router.push("/user-login");
-      }, 2000);
+      const response = await fetch("/api/v1/groups/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          groupName,
+          district,
+          phoneNumber: countryCode + phoneNumber,
+          email,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess("Registration successful! Redirecting to login page...");
+        setTimeout(() => {
+          router.push("/user-login");
+        }, 2000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Registration failed. Please try again.");
+      }
     } catch (err) {
       setError(
         "A network error occurred. Please check your connection and try again.",
       );
       console.error("An error occurred during registration:", err);
+    } finally {
       setIsLoading(false);
     }
   };

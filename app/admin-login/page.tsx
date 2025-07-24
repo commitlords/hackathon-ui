@@ -31,12 +31,24 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // Mocking API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      if (loginId === "admin" && password === "password") {
-        router.push("/user-dashboard");
+      const response = await fetch("/api/v1/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: loginId,
+          password: password,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Optionally store token/admin info here (e.g., localStorage)
+        router.push("/admin-dashboard");
       } else {
-        setError("Invalid credentials for admin.");
+        const errorData = await response.json();
+        setError(errorData.message || "Invalid credentials for admin.");
       }
     } catch (err) {
       setError(
