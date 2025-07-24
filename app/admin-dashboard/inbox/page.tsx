@@ -19,6 +19,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "flowbite-react";
+import { fetchWithAuth } from "@/app/utils";
 
 interface Message {
   id: string;
@@ -55,7 +56,7 @@ export default function AdminInboxPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/v1/admin/inbox");
+        const res = await fetchWithAuth("admin/inbox");
         if (!res.ok) throw new Error("Failed to fetch inbox");
         const data = await res.json();
         setMessages(data.messages || []);
@@ -223,7 +224,7 @@ export default function AdminInboxPage() {
             onClick={async () => {
               if (replyModal) {
                 setActionLoading(replyModal.msg.id);
-                await fetch("/api/v1/admin/inbox", {
+                await fetchWithAuth("admin/inbox", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({

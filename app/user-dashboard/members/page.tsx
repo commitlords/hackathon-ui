@@ -21,6 +21,7 @@ import {
 } from "react-icons/hi";
 import { AddMemberSidebar, type NewMemberData } from "../AddMemberSidebar";
 import Image from "next/image";
+import { fetchWithAuth } from "@/app/utils";
 
 // The Member interface now includes a photo property and business interest.
 interface Member {
@@ -86,7 +87,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
       setLoadingMembers(true);
       setMembersError(null);
       try {
-        const res = await fetch(`/api/v1/groups/${groupId}/members`);
+        const res = await fetchWithAuth(`groups/${groupId}/members`);
         if (!res.ok) throw new Error("Failed to fetch members");
         const data = await res.json();
         setMembers(data.members || []);
@@ -107,7 +108,7 @@ export function MembersPage({ groupId }: { groupId: string }) {
     (async () => {
       setLoadingMembers(true);
       try {
-        const res = await fetch(`/api/v1/groups/${groupId}/members`);
+        const res = await fetchWithAuth(`groups/${groupId}/members`);
         if (res.ok) {
           const data = await res.json();
           setMembers(data.members || []);
@@ -162,8 +163,8 @@ export function MembersPage({ groupId }: { groupId: string }) {
       setIsSubmitting(true);
       setSubmitError(null);
       try {
-        const res = await fetch(
-          `/api/v1/groups/${groupId}/members/${editableMember.id}`,
+        const res = await fetchWithAuth(
+          `groups/${groupId}/members/${editableMember.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -192,8 +193,8 @@ export function MembersPage({ groupId }: { groupId: string }) {
       setIsSubmitting(true);
       setSubmitError(null);
       try {
-        const res = await fetch(
-          `/api/v1/groups/${groupId}/members/${selectedMember.id}`,
+        const res = await fetchWithAuth(
+          `groups/${groupId}/members/${selectedMember.id}`,
           {
             method: "DELETE",
           },

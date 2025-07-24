@@ -31,6 +31,7 @@ import {
   HiOutlineCreditCard,
   HiOutlineShieldCheck,
 } from "react-icons/hi";
+import { fetchWithAuth } from "@/app/utils";
 
 interface Member {
   id: string;
@@ -85,7 +86,7 @@ export default function AdminApplicationsPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/v1/applications");
+        const res = await fetchWithAuth("applications");
         if (!res.ok) throw new Error("Failed to fetch applications");
         const data = await res.json();
         setApplications(data.applications || []);
@@ -104,7 +105,7 @@ export default function AdminApplicationsPage() {
   ) => {
     setActionLoading(applicationId);
     try {
-      const res = await fetch(`/api/v1/applications/${applicationId}`, {
+      const res = await fetchWithAuth(`applications/${applicationId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),

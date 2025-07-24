@@ -15,6 +15,7 @@ import Link from "next/link";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { fetchWithAuth, setAuthToken } from "../utils";
 
 export default function AdminLoginPage() {
   const [loginId, setLoginId] = useState("");
@@ -25,13 +26,15 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  const NEXT_PUBLIC_BACKEND_HOST = process.env.NEXT_PUBLIC_BACKEND_HOST;
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/v1/admin/login", {
+      const response = await fetch(`${NEXT_PUBLIC_BACKEND_HOST}admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,6 +47,7 @@ export default function AdminLoginPage() {
 
       if (response.ok) {
         const data = await response.json();
+        setAuthToken(data.accessToken);
         // Optionally store token/admin info here (e.g., localStorage)
         router.push("/admin-dashboard");
       } else {

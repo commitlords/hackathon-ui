@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { IoEye, IoEyeOff } from "react-icons/io5";
+import { fetchWithAuth } from "../utils";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/v1/groups/register", {
+      const response = await fetchWithAuth("groups/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

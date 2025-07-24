@@ -19,6 +19,7 @@ import {
 } from "react";
 import { HiChevronDown, HiChevronUp, HiUserAdd, HiX } from "react-icons/hi";
 import Image from "next/image";
+import { fetchWithAuth } from "../utils";
 
 export interface NewMemberData {
   name: string;
@@ -79,7 +80,7 @@ export function AddMemberSidebar({ onAddMember, groupId }: AddMemberSidebarProps
       try {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await fetch('/api/v1/uploads', {
+        const res = await fetchWithAuth('uploads', {
           method: 'POST',
           body: formData,
         });
@@ -136,7 +137,7 @@ export function AddMemberSidebar({ onAddMember, groupId }: AddMemberSidebarProps
       return;
     }
     try {
-      const res = await fetch(`/api/v1/groups/${groupId}/members`, {
+      const res = await fetchWithAuth(`groups/${groupId}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
