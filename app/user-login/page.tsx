@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { IoEyeOff, IoEye } from "react-icons/io5";
+import { setAuthToken } from "../utils";
 
 export default function UserLoginPage() {
   const [username, setUsername] = useState("");
@@ -26,6 +27,9 @@ export default function UserLoginPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
+  const NEXT_PUBLIC_BACKEND_HOST = process.env.NEXT_PUBLIC_BACKEND_HOST;
+
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -33,19 +37,20 @@ export default function UserLoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/v1/groups/login", {
+      const response = await fetch(`${NEXT_PUBLIC_BACKEND_HOST}groups/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
-          password,
+          "loginID": username,
+          "password": password,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
+        setAuthToken(data.accessToken);
         // Optionally store token/user info here (e.g., localStorage)
         setSuccess("Login successful! Redirecting to dashboard...");
         router.push("/user-dashboard");

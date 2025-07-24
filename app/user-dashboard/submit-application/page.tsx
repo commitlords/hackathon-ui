@@ -45,6 +45,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "flowbite-react";
+import { fetchWithAuth } from "@/app/utils";
 
 const mockGroups = [
   {
@@ -119,7 +120,7 @@ export default function SubmitApplicationPage() {
       setLoadingInterests(true);
       setErrorInterests(null);
       try {
-        const res = await fetch("/api/v1/business/interests");
+        const res = await fetchWithAuth("business/interests");
         if (!res.ok) throw new Error("Failed to fetch business interests");
         const data = await res.json();
         setBusinessInterests(data.interests || []);
@@ -158,7 +159,7 @@ export default function SubmitApplicationPage() {
       setExpandedLoading((prev) => ({ ...prev, [groupId]: true }));
       setExpandedError((prev) => ({ ...prev, [groupId]: null }));
       try {
-        const res = await fetch(`/api/v1/groups/${groupId}`);
+        const res = await fetchWithAuth(`groups/${groupId}`);
         if (!res.ok) throw new Error("Failed to fetch group members");
         const data = await res.json();
         setExpandedMembers((prev) => ({ ...prev, [groupId]: data.members }));
@@ -185,8 +186,8 @@ export default function SubmitApplicationPage() {
     setSubmitResult(null);
     const applicationId = "APP-" + Math.floor(Math.random() * 100000);
     try {
-      const res = await fetch(
-        `/api/v1/groups/${modalGroup.groupId}/applications/${applicationId}`,
+      const res = await fetchWithAuth(
+        `groups/${modalGroup.groupId}/applications/${applicationId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

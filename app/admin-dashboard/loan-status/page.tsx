@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchWithAuth } from "@/app/utils";
 import {
   Alert,
   Badge,
@@ -47,7 +48,7 @@ export default function LoanStatusPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/v1/applications");
+      const res = await fetchWithAuth("applications");
       if (!res.ok) throw new Error("Failed to fetch applications");
       const data = await res.json();
       setApplications(data.applications || []);
@@ -70,7 +71,7 @@ export default function LoanStatusPage() {
     setSuccessMsg(null);
     setError(null);
     try {
-      const res = await fetch(`/api/v1/applications/${applicationId}`, {
+      const res = await fetchWithAuth(`applications/${applicationId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
