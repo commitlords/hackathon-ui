@@ -36,7 +36,6 @@ export default function Home() {
 
   return (
     <>
-      <TopComponent fontSize={baseFontSize} setFontSize={setBaseFontSize} />
       <Header />
       <ImageCarousel />
       <StatsSection />
