@@ -35,6 +35,7 @@ export function Header() {
               {t("login")}
             </Button>
           )}
+          className="z-[1000]"
         >
           <DropdownItem href="/user-login">{t("user")}</DropdownItem>
           <DropdownItem href="/admin-login">{t("admin")}</DropdownItem>

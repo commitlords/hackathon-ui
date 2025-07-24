@@ -102,6 +102,7 @@ export function TopComponent({
           label={<HiTranslate className="h-5 w-5" />}
           arrowIcon={false}
           inline
+          className="z-[1000]"
         >
           <DropdownItem onClick={() => changeLanguage("en")}>English</DropdownItem>
           <DropdownItem onClick={() => changeLanguage("hi")}>हिन्दी</DropdownItem>
@@ -142,6 +143,7 @@ export function Header({ translations, language }: HeaderProps) {
               {t.login}
             </Button>
           )}
+          className="z-[1000]"
         >
           <DropdownItem href="/user-login">{t.user}</DropdownItem>
           <DropdownItem href="/admin-login">{t.admin}</DropdownItem>
