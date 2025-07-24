@@ -9,10 +9,12 @@ import html2canvas from "html2canvas";
 const CertificatePreview = ({
   memberName,
   bankName,
+  loanAmount,
   certificateRef,
 }: {
   memberName: string;
   bankName: string;
+  loanAmount: string;
   certificateRef: React.RefObject<HTMLDivElement | null>;
 }) => {
   const today = new Date().toLocaleDateString("en-US", {
@@ -21,13 +23,20 @@ const CertificatePreview = ({
     day: "numeric",
   });
 
+  // Add formatter for Indian currency
+  function formatIndianNumber(numStr: string) {
+    const num = Number(numStr);
+    if (isNaN(num)) return numStr || "____";
+    return num.toLocaleString("en-IN");
+  }
+
   return (
     <div
       ref={certificateRef}
       className="dark:bg-gray-900" // Dark mode background for the certificate content
       style={{
-        width: "800px",
-        height: "600px",
+        width: "600px",
+        height: "800px",
         padding: "40px",
         border: "10px solid #d1d5db", // gray-300
         fontFamily: "serif",
@@ -50,13 +59,15 @@ const CertificatePreview = ({
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <Image
-            src="/Logo.png"
-            alt="LOKSamarth Logo"
-            width={80}
-            height={80}
-            unoptimized
-          />
+          <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+            <Image
+              src="/Logo.png"
+              alt="LOKSamarth Logo"
+              width={80}
+              height={80}
+              unoptimized
+            />
+          </div>
           <h1
             className="dark:text-gray-100"
             style={{
@@ -65,7 +76,7 @@ const CertificatePreview = ({
               marginTop: "20px",
             }}
           >
-            CERTIFICATE of ACHIEVEMENT
+            CERTIFICATE of LOAN DISBURSEMENT
           </h1>
           <p
             className="dark:text-gray-300"
@@ -82,6 +93,18 @@ const CertificatePreview = ({
           >
             {memberName || "Member Name"}
           </h2>
+          <p
+            className="dark:text-gray-300"
+            style={{ fontSize: "18px", marginTop: "20px" }}
+          >
+            with a loan amount of
+          </p>
+          <div
+            className="dark:text-white"
+            style={{ fontSize: "36px", fontWeight: "bold" }}
+          >
+            ₹{formatIndianNumber(loanAmount)}
+          </div>
           <p
             className="dark:text-gray-300"
             style={{ fontSize: "18px", marginTop: "20px" }}
@@ -107,7 +130,7 @@ const CertificatePreview = ({
           <div style={{ textAlign: "center" }}>
             <p
               className="dark:text-gray-400"
-              style={{ borderTop: "2px solid #d1d5db", paddingTop: "5px" }}
+              style={{ borderBottom: "2px solid #d1d5db", paddingTop: "5px" }}
             >
               Date: {today}
             </p>
@@ -118,8 +141,8 @@ const CertificatePreview = ({
               style={{
                 fontFamily: "cursive",
                 fontSize: "24px",
-                borderTop: "2px solid #d1d5db",
-                paddingTop: "5px",
+                borderBottom: "2px solid #d1d5db",
+                paddingBottom: "5px",
               }}
             >
               Digitally Signed
@@ -135,6 +158,7 @@ const CertificatePreview = ({
 export default function IssueCertificatePage() {
   const [memberName, setMemberName] = useState("");
   const [bankName, setBankName] = useState("");
+  const [loanAmount, setLoanAmount] = useState("");
   const certificateRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
@@ -146,8 +170,8 @@ export default function IssueCertificatePage() {
         backgroundColor: null,
       }).then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("l", "px", [800, 600]);
-        pdf.addImage(imgData, "PNG", 0, 0, 800, 600);
+        const pdf = new jsPDF("p", "px", [600, 800]);
+        pdf.addImage(imgData, "PNG", 0, 0, 600, 800);
         pdf.save(`Certificate-${memberName.replace(/\s/g, "-")}.pdf`);
       });
     }
@@ -161,9 +185,9 @@ export default function IssueCertificatePage() {
         as a PDF.
       </p>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-8">
         {/* Form Section */}
-        <div className="lg:col-span-1">
+        <div className="max-w-md mx-auto w-full">
           <Card>
             <div className="flex flex-col gap-4">
               <div>
@@ -192,9 +216,23 @@ export default function IssueCertificatePage() {
                   onChange={(e) => setBankName(e.target.value)}
                 />
               </div>
+              <div>
+                <div className="mb-2 block">
+                  <Label htmlFor="loanAmount">Loan Amount (₹)</Label>
+                </div>
+                <TextInput
+                  id="loanAmount"
+                  type="number"
+                  placeholder="Enter the loan amount"
+                  required
+                  value={loanAmount}
+                  onChange={(e) => setLoanAmount(e.target.value)}
+                  min="0"
+                />
+              </div>
               <Button
                 onClick={handleDownload}
-                disabled={!memberName || !bankName}
+                disabled={!memberName || !bankName || !loanAmount}
               >
                 Download Certificate as PDF
               </Button>
@@ -203,16 +241,17 @@ export default function IssueCertificatePage() {
         </div>
 
         {/* Preview Section */}
-        <div className="lg:col-span-2">
+        <div>
           <h3 className="mb-2 text-lg font-semibold">Certificate Preview</h3>
           <div className="w-full overflow-x-auto rounded-lg border bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800">
             <div
-              className="mx-auto h-[600px] w-[800px] transform-gpu transition-transform duration-300 md:scale-75 lg:scale-100"
+              className="mx-auto h-[800px] w-[600px] transform-gpu transition-transform duration-300 md:scale-75 lg:scale-100"
               style={{ transformOrigin: "top left" }}
             >
               <CertificatePreview
                 memberName={memberName}
                 bankName={bankName}
+                loanAmount={loanAmount}
                 certificateRef={certificateRef}
               />
             </div>
