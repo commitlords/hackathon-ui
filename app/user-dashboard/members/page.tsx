@@ -38,37 +38,10 @@ interface Member {
   photo: string; // URL to the photo
 }
 
-export default function MembersPage() {
-  const [members, setMembers] = useState<Member[]>([
-    {
-      id: 1,
-      name: "Jaya Patil",
-      dob: "1990-01-15",
-      sex: "Female",
-      phone: "1234567890",
-      email: "jaya.patil@example.com",
-      aadhar: "1234 5678 9012",
-      pan: "ABCDE1234F",
-      bankName: "Bank of Example",
-      bankAccount: "9876543210",
-      ifsc: "EXAM0001234",
-      photo: "",
-    },
-    {
-      id: 2,
-      name: "Sunita Sharma",
-      dob: "1985-05-20",
-      sex: "Female",
-      phone: "0987654321",
-      email: "sunita.sharma@example.com",
-      aadhar: "9876 5432 1098",
-      pan: "FGHIJ5678K",
-      bankName: "Another Bank",
-      bankAccount: "0123456789",
-      ifsc: "ANOT0005678",
-      photo: "",
-    },
-  ]);
+export function MembersPage({ groupId }: { groupId: string }) {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(true);
+  const [membersError, setMembersError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,18 +81,41 @@ export default function MembersPage() {
     fetchBusinessInterests();
   }, []);
 
-  const handleAddMember = (memberData: NewMemberData) => {
-    const newMember: Member = {
-      id: members.length + 1,
-      ...memberData,
-      photo:
-        memberData.photo ||
-        "https://placehold.co/96x96/E0E0E0/757575?text=Photo",
+  useEffect(() => {
+    const fetchMembers = async () => {
+      setLoadingMembers(true);
+      setMembersError(null);
+      try {
+        const res = await fetch(`/api/v1/groups/${groupId}/members`);
+        if (!res.ok) throw new Error("Failed to fetch members");
+        const data = await res.json();
+        setMembers(data.members || []);
+      } catch (err) {
+        setMembersError("Could not load members.");
+      } finally {
+        setLoadingMembers(false);
+      }
     };
+    fetchMembers();
+  }, [groupId]);
 
-    setMembers([newMember, ...members]);
+  const handleAddMember = (memberData: NewMemberData) => {
+    // memberData may not have id, so refetch members after add
     setSuccessMessage(`Member "${memberData.name}" added successfully!`);
     setTimeout(() => setSuccessMessage(null), 3000);
+    // Refetch members
+    (async () => {
+      setLoadingMembers(true);
+      try {
+        const res = await fetch(`/api/v1/groups/${groupId}/members`);
+        if (res.ok) {
+          const data = await res.json();
+          setMembers(data.members || []);
+        }
+      } finally {
+        setLoadingMembers(false);
+      }
+    })();
   };
 
   const handleSubmitAllMembers = async () => {
@@ -161,22 +157,59 @@ export default function MembersPage() {
     setIsEditMode(false);
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (editableMember) {
-      setMembers(
-        members.map((m) => (m.id === editableMember.id ? editableMember : m)),
-      );
-      setIsEditMode(false);
-      setSelectedMember(editableMember);
+      setIsSubmitting(true);
+      setSubmitError(null);
+      try {
+        const res = await fetch(
+          `/api/v1/groups/${groupId}/members/${editableMember.id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(editableMember),
+          },
+        );
+        if (!res.ok) throw new Error("Failed to update member");
+        const data = await res.json();
+        setMembers(
+          members.map((m) => (m.id === editableMember.id ? data.member : m)),
+        );
+        setIsEditMode(false);
+        setSelectedMember(data.member);
+        setSuccessMessage("Member updated successfully!");
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } catch (err) {
+        setSubmitError("Failed to update member.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleDeleteMember = () => {
+  const handleDeleteMember = async () => {
     if (selectedMember) {
-      setMembers(members.filter((m) => m.id !== selectedMember.id));
-      setOpenDeleteModal(false);
-      setOpenModal(false);
-      setSelectedMember(null);
+      setIsSubmitting(true);
+      setSubmitError(null);
+      try {
+        const res = await fetch(
+          `/api/v1/groups/${groupId}/members/${selectedMember.id}`,
+          {
+            method: "DELETE",
+          },
+        );
+        if (!res.ok) throw new Error("Failed to delete member");
+        setMembers(members.filter((m) => m.id !== selectedMember.id));
+        setOpenDeleteModal(false);
+        setOpenModal(false);
+        setSelectedMember(null);
+        setSuccessMessage("Member deleted successfully!");
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } catch (err) {
+        setSubmitError("Failed to delete member.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -194,64 +227,74 @@ export default function MembersPage() {
       <div className="mb-4 text-gray-600">
         <span className="font-semibold">Group Name:</span> Awesome Coders
         <br />
-        <span className="font-semibold">Group ID:</span> GRP-12345
+        <span className="font-semibold">Group ID:</span> {groupId}
       </div>
-      <h2 className="mb-2 flex items-center gap-2 text-xl font-semibold">
-        <HiUsers /> Members List
-      </h2>
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {members.map((member) => (
-          <Card key={member.id}>
-            <div className="flex flex-col items-center pb-4">
-              {member.photo ? (
-                <Image
-                  src={member.photo}
-                  alt={`${member.name}'s photo`}
-                  width={96}
-                  height={96}
-                  unoptimized
-                  className="mb-3 h-24 w-24 rounded-full object-cover shadow-lg"
-                />
-              ) : (
-                <div
-                  className="mb-3 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200 text-3xl font-bold text-gray-700 shadow-lg"
-                  aria-label={`Avatar for ${member.name}`}
-                >
-                  {member.name
-                    .split(" ")
-                    .map((n) => n[0]?.toUpperCase() || "")
-                    .join("")
-                    .slice(0, 2)}
+      {loadingMembers ? (
+        <div className="my-8 flex justify-center">
+          <Spinner />
+        </div>
+      ) : membersError ? (
+        <Alert color="failure">{membersError}</Alert>
+      ) : (
+        <>
+          <h2 className="mb-2 flex items-center gap-2 text-xl font-semibold">
+            <HiUsers /> Members List
+          </h2>
+          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {members.map((member) => (
+              <Card key={member.id}>
+                <div className="flex flex-col items-center pb-4">
+                  {member.photo ? (
+                    <Image
+                      src={member.photo}
+                      alt={`${member.name}'s photo`}
+                      width={96}
+                      height={96}
+                      unoptimized
+                      className="mb-3 h-24 w-24 rounded-full object-cover shadow-lg"
+                    />
+                  ) : (
+                    <div
+                      className="mb-3 flex h-24 w-24 items-center justify-center rounded-full bg-gray-200 text-3xl font-bold text-gray-700 shadow-lg"
+                      aria-label={`Avatar for ${member.name}`}
+                    >
+                      {member.name
+                        .split(" ")
+                        .map((n) => n[0]?.toUpperCase() || "")
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+                  )}
+                  <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">
+                    {member.name}
+                  </h5>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {/* member.businessInterest */}
+                  </span>
+                  <div className="mt-4 flex space-x-3">
+                    <Button
+                      size="sm"
+                      className="bg-black text-white hover:bg-gray-500 dark:bg-black dark:hover:bg-gray-500"
+                      onClick={() => handleViewDetails(member)}
+                    >
+                      View Details
+                    </Button>
+                    <Button size="sm" color="light">
+                      Message
+                    </Button>
+                  </div>
                 </div>
-              )}
-              <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">
-                {member.name}
-              </h5>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {/* member.businessInterest */}
-              </span>
-              <div className="mt-4 flex space-x-3">
-                <Button
-                  size="sm"
-                  className="bg-black text-white hover:bg-gray-500 dark:bg-black dark:hover:bg-gray-500"
-                  onClick={() => handleViewDetails(member)}
-                >
-                  View Details
-                </Button>
-                <Button size="sm" color="light">
-                  Message
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
       <div className="mb-8 rounded-lg bg-white p-4 shadow">
         <h3 className="mb-2 text-lg font-bold">Add New Member</h3>
         <p className="mb-4 text-sm text-gray-500">
           Fill out the form below to add a new member to your group.
         </p>
-        <AddMemberSidebar onAddMember={handleAddMember} />
+        <AddMemberSidebar onAddMember={handleAddMember} groupId={groupId} />
       </div>
       {/* Member Details Modal */}
       <Modal
@@ -485,4 +528,10 @@ export default function MembersPage() {
       </Modal>
     </div>
   );
+}
+
+// Default export for Next.js routing, pass a sample groupId for now
+export default function MembersPageWrapper() {
+  // In a real app, get groupId from router, context, or props
+  return <MembersPage groupId="GRP-12345" />;
 }

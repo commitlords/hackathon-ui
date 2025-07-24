@@ -36,9 +36,10 @@ export interface NewMemberData {
 
 interface AddMemberSidebarProps {
   onAddMember: (memberData: NewMemberData) => void;
+  groupId: string; // Add groupId prop
 }
 
-export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
+export function AddMemberSidebar({ onAddMember, groupId }: AddMemberSidebarProps) {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
   const [name, setName] = useState("");
@@ -56,8 +57,11 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [photoFileId, setPhotoFileId] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
-  const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
     // Clean up the previous object URL to avoid memory leaks
@@ -69,10 +73,30 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
       // Create a new object URL and update the state
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
+      setIsUploadingPhoto(true);
+      setApiError(null);
+      // Upload photo to API
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/v1/uploads', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!res.ok) throw new Error('Photo upload failed');
+        const data = await res.json();
+        setPhotoFileId(data.fileId);
+      } catch (err) {
+        setApiError('Photo upload failed.');
+        setPhotoFileId(null);
+      } finally {
+        setIsUploadingPhoto(false);
+      }
     } else {
       // If no file is selected (e.g., user clicked cancel), clear the preview
       setPhotoFile(null);
       setPhotoPreview(null);
+      setPhotoFileId(null);
     }
   };
 
@@ -100,39 +124,57 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoFile(null);
     setPhotoPreview(null);
+    setPhotoFileId(null);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setApiError(null);
     if (!validate()) return;
-    onAddMember({
-      name,
-      dob,
-      sex,
-      phone,
-      email,
-      aadhar,
-      pan,
-      bankName,
-      bankAccount,
-      ifsc,
-      photo: photoPreview ?? undefined,
-    });
-    setShowSuccess(true);
-    // Reset form
-    setName("");
-    setDob("");
-    setSex("Female");
-    setPhone("");
-    setEmail("");
-    setAadhar("");
-    setPan("");
-    setBankName("");
-    setBankAccount("");
-    setIfsc("");
-    setPhotoFile(null);
-    setPhotoPreview(null);
-    setTimeout(() => setShowSuccess(false), 2500);
+    if (!photoFileId) {
+      setApiError('Please upload a photo before submitting.');
+      return;
+    }
+    try {
+      const res = await fetch(`/api/v1/groups/${groupId}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          dob,
+          sex,
+          phone,
+          email,
+          aadhar,
+          pan,
+          bankName,
+          accountNumber: bankAccount,
+          ifsc,
+          photoFileId,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to add member');
+      const data = await res.json();
+      onAddMember(data.member);
+      setShowSuccess(true);
+      // Reset form
+      setName("");
+      setDob("");
+      setSex("Female");
+      setPhone("");
+      setEmail("");
+      setAadhar("");
+      setPan("");
+      setBankName("");
+      setBankAccount("");
+      setIfsc("");
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      setPhotoFileId(null);
+      setTimeout(() => setShowSuccess(false), 2500);
+    } catch (err) {
+      setApiError('Failed to add member.');
+    }
   };
 
   const handleToggleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -255,7 +297,9 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
                   onChange={handlePhotoChange}
                   className="px-4 py-3 text-base"
                 />
-                {photoPreview ? (
+                {isUploadingPhoto ? (
+                  <Spinner size="sm" className="mt-2" />
+                ) : photoPreview ? (
                   <>
                     <Image
                       src={photoPreview}
@@ -275,6 +319,9 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
                   </>
                 ) : (
                   <span className="mt-2 text-xs text-gray-400">No photo</span>
+                )}
+                {apiError && (
+                  <div className="mt-2 text-xs text-red-500">{apiError}</div>
                 )}
               </div>
               {/* Aadhar, PAN, Bank Info */}
