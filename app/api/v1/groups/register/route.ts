@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { username, password, groupName } = await req.json();
+  const { username, groupName } = await req.json();
 
   // Mock duplicate username check
   if (username === "user") {
