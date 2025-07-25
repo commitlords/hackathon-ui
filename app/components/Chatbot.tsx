@@ -7,6 +7,7 @@ import { HiX } from "react-icons/hi";
 import Image from "next/image";
 
 // TypeScript declarations for browser speech APIs
+const NEXT_PUBLIC_BACKEND_HOST = process.env.NEXT_PUBLIC_BACKEND_HOST;
 
 const SpeechRecognition =
   typeof window !== "undefined" &&
@@ -25,7 +26,7 @@ const SpeechRecognition =
 const synth = typeof window !== "undefined" && window.speechSynthesis;
 
 export default function Chatbot() {
-  const [messages, setMessages] = useState<
+  const [sentance, setSentance] = useState<
     { role: "user" | "bot"; content: string }[]
   >([]);
   const [input, setInput] = useState("");
@@ -62,21 +63,21 @@ export default function Chatbot() {
     }
   };
 
-  // Send message to API
+  // Send sentance to API
   const sendMessage = async (msg?: string) => {
     const userMsg = msg || input.trim();
     if (!userMsg) return;
-    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+    setSentance((prev) => [...prev, { role: "user", content: userMsg }]);
     setInput("");
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/chatbot/interact", {
+      const res = await fetch(`${NEXT_PUBLIC_BACKEND_HOST}chatbot/interact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg }),
+        body: JSON.stringify({ sentance: userMsg }),
       });
       const data = await res.json();
-      setMessages((prev) => [
+      setSentance((prev) => [
         ...prev,
         { role: "bot", content: data.response || "No response." },
       ]);
@@ -87,13 +88,13 @@ export default function Chatbot() {
         synth.speak(utter);
       }
     } catch (e) {
-      setMessages((prev) => [
+      setSentance((prev) => [
         ...prev,
         {
           role: "bot",
           content:
             e instanceof Error
-              ? `"${e.message}"`
+              ? `"${e.sentance}"`
               : "Sorry, something went wrong.",
         },
       ]);
@@ -151,12 +152,12 @@ export default function Chatbot() {
                 </button>
               </div>
               <div className="mb-2 flex h-48 flex-col gap-2 overflow-y-auto rounded-lg bg-gray-50 p-2 sm:h-56 dark:bg-gray-800">
-                {messages.length === 0 && (
+                {sentance.length === 0 && (
                   <div className="my-auto text-center text-gray-400">
                     How can I help you today?
                   </div>
                 )}
-                {messages.map((msg, idx) => (
+                {sentance.map((msg, idx) => (
                   <div
                     key={idx}
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -189,7 +190,7 @@ export default function Chatbot() {
                 </Button>
                 <TextInput
                   className="flex-1"
-                  placeholder="Type your message..."
+                  placeholder="Type your sentance..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -201,7 +202,7 @@ export default function Chatbot() {
                   onClick={() => sendMessage()}
                   size="sm"
                   pill
-                  aria-label="Send message"
+                  aria-label="Send sentance"
                   disabled={loading || !input.trim()}
                   className="flex-shrink-0 border-none bg-black text-white hover:bg-gray-800 focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
                 >
