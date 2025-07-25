@@ -8,7 +8,6 @@ import EventGallery from "./components/EventGallery";
 import FaqSection from "./components/FaqSection";
 import Footer from "./components/Footer";
 import LokSamarthMission from "./components/LokSamarthMission";
-import StatsSection from "./components/StatsSection";
 import { Header } from "./components/Header.jsx";
 import Chatbot from "./components/Chatbot";
 
@@ -21,7 +20,6 @@ const Home = () => {
     <>
       <Header />
       <ImageCarousel />
-      <StatsSection />
       <LokSamarthMission />
       <CardCarousel />
       <EventGallery />
