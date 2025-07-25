@@ -5,11 +5,11 @@ interface Group {
   groupId: string;
   businessInterest: string;
   loanAmount: string;
-  members: Array<{
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
+  members: Member[];
+  applications?: Array<{
+    applicationID: string;
+    status: string;
+    loanAmount: string;
   }>;
 }
 
@@ -26,6 +26,46 @@ interface Member {
   bankAccount: string;
   ifsc: string;
   photo: string;
+  // Optionally add other fields if needed
+}
+
+// Backend response types
+// Update BackendMember to match backend fields
+type BackendMember = {
+  name: string;
+  dob: string;
+  sex: string;
+  aadharNumber: string;
+  panNumber: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankIfscCode: string;
+  email: string;
+  phoneNumber: number;
+  photoID: string;
+  memberID: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+interface BackendApplication {
+  applicationID?: number;
+  appicationID?: number; // typo support
+  status: string;
+  loanAmount: string;
+}
+
+interface BackendGroup {
+  groupID: number;
+  members: BackendMember[];
+  applications?: BackendApplication[];
+  // ...other fields
+}
+
+// Business interest type
+interface BackendInterest {
+  name: string;
+  loanAmount: number;
 }
 
 import { useState, useEffect } from "react";
@@ -47,49 +87,15 @@ import {
 } from "flowbite-react";
 import { fetchWithAuth } from "@/app/utils";
 
-const mockGroups = [
-  {
-    groupId: "GRP-12345",
-    businessInterest: "",
-    loanAmount: "",
-    members: [
-      {
-        id: "MEM-001",
-        name: "Jaya Patil",
-        email: "jaya.patil@example.com",
-        phone: "1234567890",
-      },
-      {
-        id: "MEM-002",
-        name: "Sunita Sharma",
-        email: "sunita.sharma@example.com",
-        phone: "0987654321",
-      },
-    ],
-  },
-  {
-    groupId: "GRP-67890",
-    businessInterest: "",
-    loanAmount: "",
-    members: [
-      {
-        id: "MEM-003",
-        name: "Kavita Singh",
-        email: "kavita.singh@example.com",
-        phone: "1122334455",
-      },
-      {
-        id: "MEM-004",
-        name: "Meena Kumari",
-        email: "meena.kumari@example.com",
-        phone: "5566778899",
-      },
-    ],
-  },
-];
+// Type guard for applicationID typo
+function getApplicationID(a: BackendApplication): string {
+  if (a.applicationID !== undefined) return String(a.applicationID);
+  if (a.appicationID !== undefined) return String(a.appicationID);
+  return "";
+}
 
 export default function SubmitApplicationPage() {
-  const [groups, setGroups] = useState(mockGroups);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [expandedMembers, setExpandedMembers] = useState<
     Record<string, Member[]>
@@ -100,11 +106,12 @@ export default function SubmitApplicationPage() {
   const [expandedError, setExpandedError] = useState<
     Record<string, string | null>
   >({});
-  const [businessInterests, setBusinessInterests] = useState<
-    { id: number; name: string }[]
-  >([]);
+  const [businessInterests, setBusinessInterests] = useState<BackendInterest[]>(
+    [],
+  );
+  const [maxLoanAmount, setMaxLoanAmount] = useState<number | null>(null);
+  const [selectedInterest, setSelectedInterest] = useState<string>("");
   const [loadingInterests, setLoadingInterests] = useState(true);
-  const [errorInterests, setErrorInterests] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalGroup, setModalGroup] = useState<Group | null>(null);
@@ -116,21 +123,64 @@ export default function SubmitApplicationPage() {
   const [showAppIdBanner, setShowAppIdBanner] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchBusinessInterests = async () => {
+    const fetchGroups = async () => {
+      try {
+        const res = await fetchWithAuth("groups");
+        if (!res.ok)
+          throw new Error(
+            `Failed to fetch groups: ${res.status} ${res.statusText}`,
+          );
+        const data: BackendGroup[] = await res.json();
+        // Map backend group structure to expected frontend structure
+        const mappedGroups = (data || []).map((g) => ({
+          groupId: String(g.groupID),
+          businessInterest: "",
+          loanAmount: "",
+          members: (g.members || []).map((m: BackendMember) => ({
+            id: String(m.memberID),
+            name: m.name,
+            email: m.email,
+            phone: String(m.phoneNumber),
+            dob: m.dob,
+            sex: m.sex,
+            aadhar: m.aadharNumber,
+            pan: m.panNumber,
+            bankName: m.bankName,
+            bankAccount: m.bankAccountNumber,
+            ifsc: m.bankIfscCode,
+            photo: m.photoID,
+          })),
+          applications: (g.applications || []).map((a) => ({
+            applicationID: getApplicationID(a),
+            status: a.status,
+            loanAmount: a.loanAmount,
+          })),
+        }));
+        setGroups(mappedGroups);
+      } catch (err) {
+        setGroups([]);
+      }
+    };
+    fetchGroups();
+  }, []);
+
+  // Fetch business interests
+  useEffect(() => {
+    const fetchInterests = async () => {
       setLoadingInterests(true);
-      setErrorInterests(null);
       try {
         const res = await fetchWithAuth("business/interests");
         if (!res.ok) throw new Error("Failed to fetch business interests");
         const data = await res.json();
-        setBusinessInterests(data.interests || []);
-      } catch (err) {
-        setErrorInterests("Could not load business interests.");
+        console.log("Fetched business interests:", data); // Debug
+        setBusinessInterests(data || []);
+      } catch {
+        setBusinessInterests([]);
       } finally {
         setLoadingInterests(false);
       }
     };
-    fetchBusinessInterests();
+    fetchInterests();
   }, []);
 
   const handleLoanAmountChange = (groupId: string, value: string) => {
@@ -160,13 +210,19 @@ export default function SubmitApplicationPage() {
       setExpandedError((prev) => ({ ...prev, [groupId]: null }));
       try {
         const res = await fetchWithAuth(`groups/${groupId}`);
-        if (!res.ok) throw new Error("Failed to fetch group members");
+        if (!res.ok)
+          throw new Error(
+            `Failed to fetch group members: ${res.status} ${res.statusText}`,
+          );
         const data = await res.json();
-        setExpandedMembers((prev) => ({ ...prev, [groupId]: data.members }));
+        // Accept both { members: [...] } and [...]
+        const members = Array.isArray(data) ? data : data.members;
+        setExpandedMembers((prev) => ({ ...prev, [groupId]: members }));
       } catch (err) {
         setExpandedError((prev) => ({
           ...prev,
-          [groupId]: "Could not load members.",
+          [groupId]:
+            err instanceof Error ? err.message : "Could not load members.",
         }));
       } finally {
         setExpandedLoading((prev) => ({ ...prev, [groupId]: false }));
@@ -180,33 +236,64 @@ export default function SubmitApplicationPage() {
     setSubmitResult(null);
   };
 
+  // On submit, POST to /applications
   const handleConfirmSubmit = async () => {
     if (!modalGroup) return;
     setSubmitting(true);
     setSubmitResult(null);
-    const applicationId = "APP-" + Math.floor(Math.random() * 100000);
     try {
-      const res = await fetchWithAuth(
-        `groups/${modalGroup.groupId}/applications/${applicationId}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            businessInterest: modalGroup.businessInterest,
-            loanAmount: modalGroup.loanAmount,
-            members: modalGroup.members,
-          }),
-        },
-      );
+      const res = await fetchWithAuth(`applications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          groupID: Number(modalGroup.groupId),
+          loanAmount: Number(modalGroup.loanAmount),
+          businessInterest: modalGroup.businessInterest,
+        }),
+      });
       if (!res.ok) throw new Error("Failed to submit application");
       const data = await res.json();
+      console.log("Submit response:", data); // Debug
       setSubmitResult({
         success: true,
         message: data.message,
-        applicationId: data.applicationId,
+        applicationId:
+          data.applicationId || data.applicationID || data.appicationID, // Support all variants
       });
-      setShowAppIdBanner(data.applicationId);
-      // Optionally reset the group loan amount and business interest
+      setShowAppIdBanner(
+        data.applicationId || data.applicationID || data.appicationID,
+      );
+      // Refetch groups to get the new application ID
+      const groupsRes = await fetchWithAuth("groups");
+      if (groupsRes.ok) {
+        const groupsData: BackendGroup[] = await groupsRes.json();
+        // Remap as before
+        const mappedGroups = (groupsData || []).map((g) => ({
+          groupId: String(g.groupID),
+          businessInterest: "",
+          loanAmount: "",
+          members: (g.members || []).map((m: BackendMember) => ({
+            id: String(m.memberID),
+            name: m.name,
+            email: m.email,
+            phone: String(m.phoneNumber),
+            dob: m.dob,
+            sex: m.sex,
+            aadhar: m.aadharNumber,
+            pan: m.panNumber,
+            bankName: m.bankName,
+            bankAccount: m.bankAccountNumber,
+            ifsc: m.bankIfscCode,
+            photo: m.photoID,
+          })),
+          applications: (g.applications || []).map((a) => ({
+            applicationID: getApplicationID(a),
+            status: a.status,
+            loanAmount: a.loanAmount,
+          })),
+        }));
+        setGroups(mappedGroups);
+      }
       setGroups((prev) =>
         prev.map((g) =>
           g.groupId === modalGroup.groupId
@@ -217,7 +304,7 @@ export default function SubmitApplicationPage() {
     } catch (err) {
       setSubmitResult({
         success: false,
-        message: "Failed to submit application. Please try again.",
+        message: err instanceof Error ? err.message : String(err),
       });
     } finally {
       setSubmitting(false);
@@ -252,10 +339,14 @@ export default function SubmitApplicationPage() {
         <div className="overflow-x-auto">
           <Table hoverable>
             <TableHead>
-              <TableHeadCell>Group ID</TableHeadCell>
-              <TableHeadCell>Business Interest</TableHeadCell>
-              <TableHeadCell>Loan Amount</TableHeadCell>
-              <TableHeadCell>Action</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Group ID</TableHeadCell>
+                <TableHeadCell>Business Interest</TableHeadCell>
+                <TableHeadCell>Loan Amount</TableHeadCell>
+                <TableHeadCell>Application ID</TableHeadCell>
+                <TableHeadCell>Status</TableHeadCell>
+                <TableHeadCell>Action</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {groups.map((group) => {
@@ -264,85 +355,108 @@ export default function SubmitApplicationPage() {
                   group.loanAmount &&
                   !isNaN(Number(group.loanAmount)) &&
                   Number(group.loanAmount) > 0;
-                return (
-                  <>
-                    <TableRow key={group.groupId}>
-                      <TableCell>
-                        <button
-                          className="text-blue-600 hover:underline"
-                          onClick={() => handleExpandGroup(group.groupId)}
-                        >
-                          {group.groupId}
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        {loadingInterests ? (
-                          <span>Loading...</span>
-                        ) : errorInterests ? (
-                          <span className="text-red-500">{errorInterests}</span>
-                        ) : (
-                          <select
-                            className="w-40 rounded border px-2 py-1"
-                            value={group.businessInterest}
-                            onChange={(e) =>
-                              handleBusinessInterestChange(
-                                group.groupId,
-                                e.target.value,
-                              )
-                            }
-                          >
-                            <option value="">Select interest</option>
-                            {businessInterests.map((interest) => (
-                              <option key={interest.id} value={interest.name}>
-                                {interest.name}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <input
-                          type="number"
-                          className="w-32 rounded border px-2 py-1"
-                          value={group.loanAmount}
-                          onChange={(e) =>
-                            handleLoanAmountChange(
+                const firstApp =
+                  group.applications && group.applications.length > 0
+                    ? group.applications[0]
+                    : null;
+                // Use a unique key for each TableRow and expanded row
+                const rows = [
+                  <TableRow key={group.groupId}>
+                    <TableCell>
+                      <button
+                        className="text-blue-600 hover:underline"
+                        onClick={() => handleExpandGroup(group.groupId)}
+                      >
+                        {group.groupId}
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      {loadingInterests ? (
+                        <span>Loading...</span>
+                      ) : (
+                        <select
+                          className="w-40 rounded border px-2 py-1"
+                          value={group.businessInterest}
+                          onChange={(e) => {
+                            handleBusinessInterestChange(
                               group.groupId,
                               e.target.value,
-                            )
-                          }
-                          placeholder="Enter amount"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="xs"
-                          disabled={!canSubmit}
-                          onClick={() => handleSubmitApplication(group)}
+                            );
+                            const found = businessInterests.find(
+                              (i) => i.name === e.target.value,
+                            );
+                            setMaxLoanAmount(found ? found.loanAmount : null);
+                            setSelectedInterest(e.target.value);
+                          }}
+                          disabled={loadingInterests}
                         >
-                          Submit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    {expandedGroup === group.groupId && (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="bg-gray-50 dark:bg-gray-800"
-                        >
-                          <div className="p-4">
-                            <h3 className="mb-2 font-semibold">
-                              Members in {group.groupId}
-                            </h3>
-                            {expandedLoading[group.groupId] ? (
-                              <Spinner />
-                            ) : expandedError[group.groupId] ? (
-                              <Alert color="failure">
-                                {expandedError[group.groupId]}
-                              </Alert>
-                            ) : (
-                              <Table>
-                                <TableHead>
+                          <option value="">
+                            {loadingInterests
+                              ? "Loading..."
+                              : "Select interest"}
+                          </option>
+                          {businessInterests.map((interest) => (
+                            <option key={interest.name} value={interest.name}>
+                              {interest.name} (Max: {interest.loanAmount})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <input
+                        type="number"
+                        className="w-32 rounded border px-2 py-1"
+                        value={group.loanAmount}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (
+                            maxLoanAmount !== null &&
+                            Number(value) > maxLoanAmount
+                          )
+                            return;
+                          handleLoanAmountChange(group.groupId, value);
+                        }}
+                        placeholder="Enter amount"
+                        max={maxLoanAmount !== null ? maxLoanAmount : undefined}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {firstApp ? firstApp.applicationID : "-"}
+                    </TableCell>
+                    <TableCell>{firstApp ? firstApp.status : "-"}</TableCell>
+                    <TableCell>
+                      <Button
+                        size="xs"
+                        disabled={!canSubmit}
+                        onClick={() => handleSubmitApplication(group)}
+                      >
+                        Submit
+                      </Button>
+                    </TableCell>
+                  </TableRow>,
+                ];
+                if (expandedGroup === group.groupId) {
+                  rows.push(
+                    <TableRow key={group.groupId + "-expanded"}>
+                      <TableCell
+                        colSpan={6}
+                        className="bg-gray-50 dark:bg-gray-800"
+                      >
+                        <div className="p-4">
+                          <h3 className="mb-2 font-semibold">
+                            Members in {group.groupId}
+                          </h3>
+                          {expandedLoading[group.groupId] ? (
+                            <Spinner />
+                          ) : expandedError[group.groupId] ? (
+                            <Alert color="failure">
+                              {expandedError[group.groupId]}
+                            </Alert>
+                          ) : (
+                            <Table>
+                              <TableHead>
+                                <TableRow>
                                   <TableHeadCell>Member ID</TableHeadCell>
                                   <TableHeadCell>Name</TableHeadCell>
                                   <TableHeadCell>Email</TableHeadCell>
@@ -355,49 +469,48 @@ export default function SubmitApplicationPage() {
                                   <TableHeadCell>Account No.</TableHeadCell>
                                   <TableHeadCell>IFSC</TableHeadCell>
                                   <TableHeadCell>Photo</TableHeadCell>
-                                </TableHead>
-                                <TableBody>
-                                  {(expandedMembers[group.groupId] || []).map(
-                                    (m) => (
-                                      <TableRow key={m.id}>
-                                        <TableCell>{m.id}</TableCell>
-                                        <TableCell>{m.name}</TableCell>
-                                        <TableCell>{m.email}</TableCell>
-                                        <TableCell>{m.phone}</TableCell>
-                                        <TableCell>{m.dob || "-"}</TableCell>
-                                        <TableCell>{m.sex || "-"}</TableCell>
-                                        <TableCell>{m.aadhar || "-"}</TableCell>
-                                        <TableCell>{m.pan || "-"}</TableCell>
-                                        <TableCell>
-                                          {m.bankName || "-"}
-                                        </TableCell>
-                                        <TableCell>
-                                          {m.bankAccount || "-"}
-                                        </TableCell>
-                                        <TableCell>{m.ifsc || "-"}</TableCell>
-                                        <TableCell>
-                                          {m.photo ? (
-                                            <img
-                                              src={m.photo}
-                                              alt="Member"
-                                              className="h-10 w-10 rounded-full object-cover"
-                                            />
-                                          ) : (
-                                            <span>-</span>
-                                          )}
-                                        </TableCell>
-                                      </TableRow>
-                                    ),
-                                  )}
-                                </TableBody>
-                              </Table>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </>
-                );
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {(expandedMembers[group.groupId] || []).map(
+                                  (m) => (
+                                    <TableRow key={m.id}>
+                                      <TableCell>{m.id}</TableCell>
+                                      <TableCell>{m.name}</TableCell>
+                                      <TableCell>{m.email}</TableCell>
+                                      <TableCell>{m.phone}</TableCell>
+                                      <TableCell>{m.dob || "-"}</TableCell>
+                                      <TableCell>{m.sex || "-"}</TableCell>
+                                      <TableCell>{m.aadhar || "-"}</TableCell>
+                                      <TableCell>{m.pan || "-"}</TableCell>
+                                      <TableCell>{m.bankName || "-"}</TableCell>
+                                      <TableCell>
+                                        {m.bankAccount || "-"}
+                                      </TableCell>
+                                      <TableCell>{m.ifsc || "-"}</TableCell>
+                                      <TableCell>
+                                        {m.photo ? (
+                                          <img
+                                            src={m.photo}
+                                            alt="Member"
+                                            className="h-10 w-10 rounded-full object-cover"
+                                          />
+                                        ) : (
+                                          <span>-</span>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  ),
+                                )}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>,
+                  );
+                }
+                return rows;
               })}
             </TableBody>
           </Table>
