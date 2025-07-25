@@ -65,7 +65,6 @@ interface Group {
   interests: Interest[];
 }
 
-
 export default function UserDashboardPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +79,9 @@ export default function UserDashboardPage() {
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [businessInterest, setBusinessInterest] = useState<string | null>(null);
-  const [applicationStatus, setApplicationStatus] = useState<string | null>(null);
+  const [applicationStatus, setApplicationStatus] = useState<string | null>(
+    null,
+  );
   const [district, setDistrict] = useState<string | null>(null);
 
   useEffect(() => {
@@ -89,23 +90,25 @@ export default function UserDashboardPage() {
       setLoadingError(null);
       try {
         if (groups.length === 0) {
-        const res = await fetchWithAuth("groups");
-        if (!res.ok) throw new Error("Failed to fetch groups");
-        const data = await res.json();
-        setGroups(data || []);
-        localStorage.setItem("groupID", data[0].groupID);
-        localStorage.setItem("groupName", data[0].groupName);
-      }
+          const res = await fetchWithAuth("groups");
+          if (!res.ok) throw new Error("Failed to fetch groups");
+          const data = await res.json();
+          console.log("data =", data);
+          setGroups(data || []);
+          localStorage.setItem("groupID", data[0].groupID);
+          localStorage.setItem("groupName", data[0].groupName);
+          console.log("localStorage =", localStorage);
+        }
       } catch (error) {
         setLoadingError(
-          error instanceof Error ? error.message : "An unknown error occurred."
+          error instanceof Error ? error.message : "An unknown error occurred.",
         );
       } finally {
         setLoading(false);
       }
     };
     fetchGroups();
-  }, [groups]);
+  }, []);
 
   // Get all members from all groups (flattened)
   const allMembers = groups.flatMap((g) => g.members || []);
@@ -115,7 +118,8 @@ export default function UserDashboardPage() {
   }, [allMembers, currentPage]);
 
   // Helper to find a group for a given member
-  const findGroupForMember = (memberId: string) => groups.find(g => g.members.some(m => m.memberID === memberId));
+  const findGroupForMember = (memberId: string) =>
+    groups.find((g) => g.members.some((m) => m.memberID === memberId));
 
   const handleViewDetails = (member: Member) => {
     setSelectedMember(member);
@@ -156,20 +160,25 @@ export default function UserDashboardPage() {
             g.groupID === group.groupID
               ? {
                   ...g,
-                  members: g.members.filter((m: Member) => m.memberID !== selectedMember.memberID),
+                  members: g.members.filter(
+                    (m: Member) => m.memberID !== selectedMember.memberID,
+                  ),
                 }
               : g,
           ),
         );
       }
-      try{
-        const res = await fetchWithAuth(`groups/${group?.groupID}/members/${selectedMember?.memberID}`, {
-          method: 'DELETE',
-        });
-        if (!res.ok) throw new Error('Failed to delete member');
+      try {
+        const res = await fetchWithAuth(
+          `groups/${group?.groupID}/members/${selectedMember?.memberID}`,
+          {
+            method: "DELETE",
+          },
+        );
+        if (!res.ok) throw new Error("Failed to delete member");
       } catch (error) {
         setLoadingError(
-          error instanceof Error ? error.message : 'An unknown error occurred.',
+          error instanceof Error ? error.message : "An unknown error occurred.",
         );
       }
       setOpenDeleteModal(false);
@@ -222,7 +231,8 @@ export default function UserDashboardPage() {
                   {loading ? (
                     <Spinner size="sm" />
                   ) : (
-                    (groups.reduce((sum, g) => sum + g.members?.length, 0) ?? "N/A")
+                    (groups.reduce((sum, g) => sum + g.members?.length, 0) ??
+                    "N/A")
                   )}
                 </p>
               </div>
@@ -253,7 +263,11 @@ export default function UserDashboardPage() {
               <div>
                 <p className="text-gray-500 dark:text-gray-400">Group ID</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {loading ? <Spinner size="sm" /> : (groups[0]?.groupID ?? "N/A")}
+                  {loading ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    (groups[0]?.groupID ?? "N/A")
+                  )}
                 </p>
               </div>
             </div>
@@ -262,17 +276,23 @@ export default function UserDashboardPage() {
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-800">
                 {/* You can use an icon here if desired */}
-                <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">ID</span>
+                <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
+                  ID
+                </span>
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Application ID</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Application ID
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {loading ? (
                     <Spinner size="sm" />
+                  ) : groups.length > 0 && groups[0].applications.length > 0 ? (
+                    groups[0].applications
+                      .map((app) => app.applicationID)
+                      .join(", ")
                   ) : (
-                    groups.length > 0 && groups[0].applications.length > 0
-                      ? groups[0].applications.map(app => app.applicationID).join(", ")
-                      : "N/A"
+                    "N/A"
                   )}
                 </p>
               </div>
@@ -281,10 +301,14 @@ export default function UserDashboardPage() {
           <Card className="w-full">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-800">
-                <span className="text-lg font-bold text-pink-700 dark:text-pink-300">ST</span>
+                <span className="text-lg font-bold text-pink-700 dark:text-pink-300">
+                  ST
+                </span>
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Application Status</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Application Status
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {loading ? (
                     <Spinner size="sm" />
@@ -371,16 +395,18 @@ export default function UserDashboardPage() {
               <div className="w-full overflow-x-auto">
                 <Table className="w-full min-w-max" hoverable>
                   <TableHead>
-                    <TableHeadCell>Name</TableHeadCell>
-                    <TableHeadCell className="hidden md:table-cell">
-                      Email
-                    </TableHeadCell>
-                    <TableHeadCell className="hidden lg:table-cell">
-                      Phone
-                    </TableHeadCell>
-                    <TableHeadCell>
-                      <span className="sr-only">Actions</span>
-                    </TableHeadCell>
+                    <TableRow>
+                      <TableHeadCell>Name</TableHeadCell>
+                      <TableHeadCell className="hidden md:table-cell">
+                        Email
+                      </TableHeadCell>
+                      <TableHeadCell className="hidden lg:table-cell">
+                        Phone
+                      </TableHeadCell>
+                      <TableHeadCell>
+                        <span className="sr-only">Actions</span>
+                      </TableHeadCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody className="divide-y">
                     {paginatedMembers.map((member) => (

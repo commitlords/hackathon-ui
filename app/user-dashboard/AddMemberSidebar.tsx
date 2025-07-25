@@ -37,9 +37,13 @@ export interface NewMemberData {
 
 interface AddMemberSidebarProps {
   onAddMember: (memberData: NewMemberData) => void;
+  groupID: string;
 }
 
-export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
+export function AddMemberSidebar({
+  onAddMember,
+  groupID,
+}: AddMemberSidebarProps) {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
   const [name, setName] = useState("");
@@ -52,8 +56,6 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
   const [bankName, setBankName] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [ifsc, setIfsc] = useState("");
-  const groupID = localStorage.getItem("groupID");
-  const groupName = localStorage.getItem("groupName");
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -80,16 +82,16 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
       // Upload photo to API
       try {
         const formData = new FormData();
-        formData.append('attachment', file);
-        const res = await fetchWithAuth('uploads', {
-          method: 'POST',
+        formData.append("attachment", file);
+        const res = await fetchWithAuth("uploads", {
+          method: "POST",
           body: formData,
         });
-        if (!res.ok) throw new Error('Photo upload failed');
+        if (!res.ok) throw new Error("Photo upload failed");
         const data = await res.json();
         setPhotoFileId(data.guid);
       } catch (err) {
-        setApiError('Photo upload failed.');
+        setApiError("Photo upload failed.");
         setPhotoFileId(null);
       } finally {
         setIsUploadingPhoto(false);
@@ -134,28 +136,28 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
     setApiError(null);
     if (!validate()) return;
     if (!photoFileId) {
-      setApiError('Please upload a photo before submitting.');
+      setApiError("Please upload a photo before submitting.");
       return;
     }
     try {
       const res = await fetchWithAuth(`groups/${groupID}/members`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           dob,
           sex,
-          phoneNumber:phone,
+          phoneNumber: phone,
           email,
-          aadharNumber:aadhar,
-          panNumber:pan,
+          aadharNumber: aadhar,
+          panNumber: pan,
           bankName,
           bankAccountNumber: bankAccount,
-          bankIfscCode:ifsc,
-          photoID:photoFileId,
+          bankIfscCode: ifsc,
+          photoID: photoFileId,
         }),
       });
-      if (!res.ok) throw new Error('Failed to add member');
+      if (!res.ok) throw new Error("Failed to add member");
       const data = await res.json();
       onAddMember(data.member);
       setShowSuccess(true);
@@ -175,7 +177,7 @@ export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
       setPhotoFileId(null);
       setTimeout(() => setShowSuccess(false), 2500);
     } catch (err) {
-      setApiError('Failed to add member.');
+      setApiError("Failed to add member.");
     }
   };
 

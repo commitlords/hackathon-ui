@@ -90,16 +90,15 @@ export default function UserDashboardLayout({ children }: PropsWithChildren) {
           >
             {!isSidebarCollapsed ? (
               <>
-                <Link href="/user-dashboard">
-                  <SidebarLogo
-                    href="/user-dashboard"
-                    img="/Logo.png"
-                    imgAlt="LOKSamarth Logo"
-                    className="!m-0 !p-0"
-                  >
-                    LOKSamarth
-                  </SidebarLogo>
-                </Link>
+                {/* Remove outer <Link> and use only SidebarLogo with href */}
+                <SidebarLogo
+                  href="/user-dashboard"
+                  img="/Logo.png"
+                  imgAlt="LOKSamarth Logo"
+                  className="!m-0 !p-0"
+                >
+                  LOKSamarth
+                </SidebarLogo>
                 {!isMobile && (
                   <button
                     onClick={toggleSidebarCollapse}
@@ -162,7 +161,12 @@ export default function UserDashboardLayout({ children }: PropsWithChildren) {
               >
                 Meetings
               </SidebarItem>
-              <SidebarItem icon={HiLogout} onClick={() => { router.push('/'); }}>
+              <SidebarItem
+                icon={HiLogout}
+                onClick={() => {
+                  router.push("/");
+                }}
+              >
                 Logout
               </SidebarItem>
             </SidebarItemGroup>

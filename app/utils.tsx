@@ -1,5 +1,6 @@
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_HOST;
+export const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_HOST || ""
+).replace(/\/$/, "");
 
 export function setAuthToken(token: string): void {
   localStorage.setItem("authToken", token);
@@ -14,23 +15,26 @@ export function removeAuthToken(): void {
 }
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-    const accessToken = getAuthToken();
+  const accessToken = getAuthToken();
 
-    const modifiedOptions: RequestInit = {
-        ...options,
-        headers: {
-            ...options.headers,
-            Authorization: `Bearer ${accessToken}`,
-        },
-    };
+  const modifiedOptions: RequestInit = {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+    },
+  };
 
-    const response = await fetch(`${API_BASE_URL}${url}`, modifiedOptions);
+  console.log("fetchWithAuth: headers =", modifiedOptions.headers);
 
-    if (response.status === 401) {
-        console.log("Access token expired, loging out...");
-        removeAuthToken();
-        window.location.href = "/";
-    }
-    return response;
-}
+  // Sanitize URL to prevent double slashes
+  const fullUrl = `${API_BASE_URL}/${url.replace(/^\//, "")}`;
+  const response = await fetch(fullUrl, modifiedOptions);
 
+  if (response.status === 401) {
+    console.log("Access token expired, loging out...");
+    removeAuthToken();
+    window.location.href = "/";
+  }
+  return response;
+};

@@ -7,42 +7,37 @@ import {
   Modal,
   Label,
   TextInput,
-  Select,
   Spinner,
   ModalBody,
   ModalFooter,
   ModalHeader,
 } from "flowbite-react";
 import { useState, ChangeEvent, useEffect } from "react";
-import {
-  HiUsers,
-  HiOutlineExclamationCircle,
-  HiCheckCircle,
-} from "react-icons/hi";
+import { HiUsers, HiOutlineExclamationCircle } from "react-icons/hi";
 import { AddMemberSidebar, type NewMemberData } from "../AddMemberSidebar";
 import Image from "next/image";
 import { fetchWithAuth } from "@/app/utils";
-import { useSearchParams } from "next/navigation";
 
 // The Member interface now includes a photo property and business interest.
 interface Member {
-  id: number;
+  memberID: number;
   name: string;
   dob: string;
   sex: string;
-  phone: string;
+  phoneNumber: string;
   email: string;
-  aadhar: string;
-  pan: string;
+  aadharNumber: string;
+  panNumber: string;
   bankName: string;
-  bankAccount: string;
-  ifsc: string;
-  photo: string; // URL to the photo
+  bankAccountNumber: string;
+  bankIfscCode: string;
+  photoID: string;
+  // photoURL: string; // URL to the photo
 }
 
 export default function MembersPage() {
-  const groupID = localStorage.getItem("groupID");
-  const groupName = localStorage.getItem("groupName");
+  const [groupID, setGroupID] = useState<string | null>(null);
+  const [groupName, setGroupName] = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [membersError, setMembersError] = useState<string | null>(null);
@@ -55,37 +50,14 @@ export default function MembersPage() {
   const [editableMember, setEditableMember] = useState<Member | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const [businessInterestsList, setBusinessInterestsList] = useState<string[]>(
-    [],
-  );
-  const [loadingInterests, setLoadingInterests] = useState(true);
-
-  // Fetch business interests when the component mounts
   useEffect(() => {
-    const fetchBusinessInterests = async () => {
-      setLoadingInterests(true);
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const mockData = [
-          "Tailoring",
-          "Handicrafts",
-          "Pottery",
-          "Spice Making",
-          "Weaving",
-          "Food Processing",
-        ];
-        setBusinessInterestsList(mockData);
-      } catch (error) {
-        console.error("Failed to fetch business interests:", error);
-      } finally {
-        setLoadingInterests(false);
-      }
-    };
-
-    fetchBusinessInterests();
+    // Only runs on client
+    setGroupID(localStorage.getItem("groupID"));
+    setGroupName(localStorage.getItem("groupName"));
   }, []);
 
   useEffect(() => {
+    if (!groupID) return; // Guard: do not fetch if groupID is null or undefined
     const fetchMembers = async () => {
       setLoadingMembers(true);
       setMembersError(null);
@@ -93,9 +65,11 @@ export default function MembersPage() {
         const res = await fetchWithAuth(`groups/${groupID}/members`);
         if (!res.ok) throw new Error("Failed to fetch members");
         const data = await res.json();
-        setMembers(data.members || []);
+        setMembers(data || []);
       } catch (err) {
-        setMembersError("Could not load members.");
+        setMembersError(
+          err instanceof Error ? err.message : "Could not load members.",
+        );
       } finally {
         setLoadingMembers(false);
       }
@@ -131,13 +105,13 @@ export default function MembersPage() {
       // In a real app, you would get the group ID from the session or props
       // const groupID = "GRP-12345";
       const response = await fetchWithAuth(`groups/${groupID}/members`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(members),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(members),
       });
 
       if (!response.ok) {
-          throw new Error('Failed to submit member data.');
+        throw new Error("Failed to submit member data.");
       }
 
       // Mocking a successful API call
@@ -167,7 +141,7 @@ export default function MembersPage() {
       setSubmitError(null);
       try {
         const res = await fetchWithAuth(
-          `groups/${groupID}/members/${editableMember.id}`,
+          `groups/${groupID}/members/${editableMember.memberID}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -177,7 +151,9 @@ export default function MembersPage() {
         if (!res.ok) throw new Error("Failed to update member");
         const data = await res.json();
         setMembers(
-          members.map((m) => (m.id === editableMember.id ? data.member : m)),
+          members.map((m) =>
+            m.memberID === editableMember.memberID ? data.member : m,
+          ),
         );
         setIsEditMode(false);
         setSelectedMember(data.member);
@@ -197,13 +173,15 @@ export default function MembersPage() {
       setSubmitError(null);
       try {
         const res = await fetchWithAuth(
-          `groups/${groupID}/members/${selectedMember.id}`,
+          `groups/${groupID}/members/${selectedMember.memberID}`,
           {
             method: "DELETE",
           },
         );
         if (!res.ok) throw new Error("Failed to delete member");
-        setMembers(members.filter((m) => m.id !== selectedMember.id));
+        setMembers(
+          members.filter((m: Member) => m.memberID !== selectedMember.memberID),
+        );
         setOpenDeleteModal(false);
         setOpenModal(false);
         setSelectedMember(null);
@@ -227,9 +205,11 @@ export default function MembersPage() {
 
   if (!groupID) {
     return (
-      <div className="mx-auto w-full max-w-4xl px-2 sm:px-4 mt-8">
-        <h1 className="text-2xl font-bold mb-4">Group Members</h1>
-        <p className="text-red-600">No group selected. Please go back and select a group.</p>
+      <div className="mx-auto mt-8 w-full max-w-4xl px-2 sm:px-4">
+        <h1 className="mb-4 text-2xl font-bold">Group Members</h1>
+        <p className="text-red-600">
+          No group selected. Please go back and select a group.
+        </p>
       </div>
     );
   }
@@ -254,12 +234,12 @@ export default function MembersPage() {
             <HiUsers /> Members List
           </h2>
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {members.map((member) => (
-              <Card key={member.id}>
+            {members.map((member: Member) => (
+              <Card key={member.memberID || member.email || member.name}>
                 <div className="flex flex-col items-center pb-4">
-                  {member.photo ? (
+                  {member.photoID ? (
                     <Image
-                      src={member.photo}
+                      src={member.photoID}
                       alt={`${member.name}'s photo`}
                       width={96}
                       height={96}
@@ -302,13 +282,9 @@ export default function MembersPage() {
           </div>
         </>
       )}
-      <div className="mb-8 rounded-lg bg-white p-4 shadow">
-        <h3 className="mb-2 text-lg font-bold">Add New Member</h3>
-        <p className="mb-4 text-sm text-gray-500">
-          Fill out the form below to add a new member to your group.
-        </p>
+      {groupID && (
         <AddMemberSidebar onAddMember={handleAddMember} groupID={groupID} />
-      </div>
+      )}
       {/* Member Details Modal */}
       <Modal
         show={openModal}
@@ -345,7 +321,7 @@ export default function MembersPage() {
                 <TextInput
                   id="phone"
                   type="tel"
-                  value={editableMember?.phone ?? ""}
+                  value={editableMember?.phoneNumber ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
@@ -370,7 +346,7 @@ export default function MembersPage() {
                 <Label htmlFor="aadhar">Aadhar</Label>
                 <TextInput
                   id="aadhar"
-                  value={editableMember?.aadhar ?? ""}
+                  value={editableMember?.aadharNumber ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
@@ -378,7 +354,7 @@ export default function MembersPage() {
                 <Label htmlFor="pan">PAN</Label>
                 <TextInput
                   id="pan"
-                  value={editableMember?.pan ?? ""}
+                  value={editableMember?.panNumber ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
@@ -394,7 +370,7 @@ export default function MembersPage() {
                 <Label htmlFor="bankAccount">Bank Account No.</Label>
                 <TextInput
                   id="bankAccount"
-                  value={editableMember?.bankAccount ?? ""}
+                  value={editableMember?.bankAccountNumber ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
@@ -402,7 +378,7 @@ export default function MembersPage() {
                 <Label htmlFor="ifsc">IFSC Code</Label>
                 <TextInput
                   id="ifsc"
-                  value={editableMember?.ifsc ?? ""}
+                  value={editableMember?.bankIfscCode ?? ""}
                   onChange={handleInputChange}
                 />
               </div>
@@ -426,7 +402,7 @@ export default function MembersPage() {
                     Phone
                   </p>
                   <p className="text-sm text-gray-900 dark:text-white">
-                    {selectedMember?.phone}
+                    {selectedMember?.phoneNumber}
                   </p>
                 </div>
                 <div>
@@ -450,7 +426,7 @@ export default function MembersPage() {
                     Aadhar
                   </p>
                   <p className="text-sm text-gray-900 dark:text-white">
-                    {selectedMember?.aadhar}
+                    {selectedMember?.aadharNumber}
                   </p>
                 </div>
                 <div>
@@ -458,7 +434,7 @@ export default function MembersPage() {
                     PAN
                   </p>
                   <p className="text-sm text-gray-900 dark:text-white">
-                    {selectedMember?.pan}
+                    {selectedMember?.panNumber}
                   </p>
                 </div>
               </div>
@@ -479,7 +455,7 @@ export default function MembersPage() {
                     Bank Account No.
                   </p>
                   <p className="text-sm text-gray-900 dark:text-white">
-                    {selectedMember?.bankAccount}
+                    {selectedMember?.bankAccountNumber}
                   </p>
                 </div>
                 <div>
@@ -487,7 +463,7 @@ export default function MembersPage() {
                     IFSC Code
                   </p>
                   <p className="text-sm text-gray-900 dark:text-white">
-                    {selectedMember?.ifsc}
+                    {selectedMember?.bankIfscCode}
                   </p>
                 </div>
               </div>
