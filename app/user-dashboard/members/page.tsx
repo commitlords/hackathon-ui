@@ -41,9 +41,8 @@ interface Member {
 }
 
 export default function MembersPage() {
-  const searchParams = useSearchParams();
-  const groupID = searchParams.get("groupID");
-  const groupName = searchParams.get("groupName");
+  const groupID = localStorage.getItem("groupID");
+  const groupName = localStorage.getItem("groupName");
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [membersError, setMembersError] = useState<string | null>(null);

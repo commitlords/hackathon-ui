@@ -37,10 +37,9 @@ export interface NewMemberData {
 
 interface AddMemberSidebarProps {
   onAddMember: (memberData: NewMemberData) => void;
-  groupID: string;
 }
 
-export function AddMemberSidebar({ onAddMember, groupID }: AddMemberSidebarProps) {
+export function AddMemberSidebar({ onAddMember }: AddMemberSidebarProps) {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
   const [name, setName] = useState("");
@@ -53,6 +52,8 @@ export function AddMemberSidebar({ onAddMember, groupID }: AddMemberSidebarProps
   const [bankName, setBankName] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [ifsc, setIfsc] = useState("");
+  const groupID = localStorage.getItem("groupID");
+  const groupName = localStorage.getItem("groupName");
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);

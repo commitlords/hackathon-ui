@@ -36,7 +36,7 @@ import { fetchWithAuth } from "../utils";
 
 // Define types for Group and Member
 interface Member {
-  id: string;
+  memberID: string;
   name: string;
   dob?: string;
   sex?: string;
@@ -93,6 +93,8 @@ export default function UserDashboardPage() {
         if (!res.ok) throw new Error("Failed to fetch groups");
         const data = await res.json();
         setGroups(data || []);
+        localStorage.setItem("groupID", data[0].groupID);
+        localStorage.setItem("groupName", data[0].groupName);
       }
       } catch (error) {
         setLoadingError(
@@ -113,7 +115,7 @@ export default function UserDashboardPage() {
   }, [allMembers, currentPage]);
 
   // Helper to find a group for a given member
-  const findGroupForMember = (memberId: string) => groups.find(g => g.members.some(m => m.id === memberId));
+  const findGroupForMember = (memberId: string) => groups.find(g => g.members.some(m => m.memberID === memberId));
 
   const handleViewDetails = (member: Member) => {
     setSelectedMember(member);
@@ -124,7 +126,7 @@ export default function UserDashboardPage() {
 
   const handleSaveChanges = () => {
     if (editableMember) {
-      const group = findGroupForMember(editableMember.id);
+      const group = findGroupForMember(editableMember.memberID);
       if (group) {
         setGroups(
           groups.map((g) =>
@@ -132,7 +134,7 @@ export default function UserDashboardPage() {
               ? {
                   ...g,
                   members: g.members.map((m: Member) =>
-                    m.id === editableMember.id ? editableMember : m,
+                    m.memberID === editableMember.memberID ? editableMember : m,
                   ),
                 }
               : g,
@@ -144,19 +146,30 @@ export default function UserDashboardPage() {
     }
   };
 
-  const handleDeleteMember = () => {
+  const handleDeleteMember = async () => {
     if (selectedMember) {
-      const group = findGroupForMember(selectedMember.id);
+      const group = findGroupForMember(selectedMember.memberID);
+
       if (group) {
         setGroups(
           groups.map((g) =>
             g.groupID === group.groupID
               ? {
                   ...g,
-                  members: g.members.filter((m: Member) => m.id !== selectedMember.id),
+                  members: g.members.filter((m: Member) => m.memberID !== selectedMember.memberID),
                 }
               : g,
           ),
+        );
+      }
+      try{
+        const res = await fetchWithAuth(`groups/${group?.groupID}/members/${selectedMember?.memberID}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error('Failed to delete member');
+      } catch (error) {
+        setLoadingError(
+          error instanceof Error ? error.message : 'An unknown error occurred.',
         );
       }
       setOpenDeleteModal(false);
@@ -318,7 +331,7 @@ export default function UserDashboardPage() {
             Quick Actions
           </h2>
           <div className="flex flex-wrap gap-4">
-            <Button as={Link} href={`/user-dashboard/members?groupID=${groups[0]?.groupID}&groupName=${groups[0]?.groupName}`}>
+            <Button as={Link} href={`/user-dashboard/members`}>
               <HiUsers className="mr-2 h-5 w-5" />
               Add Members
             </Button>
@@ -372,7 +385,7 @@ export default function UserDashboardPage() {
                   <TableBody className="divide-y">
                     {paginatedMembers.map((member) => (
                       <TableRow
-                        key={member.id}
+                        key={member.memberID}
                         className="bg-white dark:border-gray-700 dark:bg-gray-800"
                       >
                         <TableCell className="font-medium whitespace-nowrap text-gray-900 dark:text-white">

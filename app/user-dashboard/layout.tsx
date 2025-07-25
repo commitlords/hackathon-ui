@@ -23,6 +23,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function UserDashboardLayout({ children }: PropsWithChildren) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -47,6 +48,10 @@ export default function UserDashboardLayout({ children }: PropsWithChildren) {
   };
 
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const groupID = searchParams.get("groupID");
+  const groupName = searchParams.get("groupName");
 
   return (
     <div className="flex h-screen w-full min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
@@ -137,7 +142,7 @@ export default function UserDashboardLayout({ children }: PropsWithChildren) {
                 Dashboard
               </SidebarItem>
               <SidebarItem
-                href="/user-dashboard/members"
+                href={`/user-dashboard/members`}
                 icon={HiUsers}
                 onClick={() => isMobile && setIsSidebarOpen(false)}
               >
