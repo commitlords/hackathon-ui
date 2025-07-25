@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   // Simulate file upload and generate a unique file identifier
   // In a real app, you'd handle multipart/form-data, but here we just mock
   const fileId = "file_" + Math.random().toString(36).substring(2, 12);

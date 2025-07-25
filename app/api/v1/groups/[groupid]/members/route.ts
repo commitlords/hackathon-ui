@@ -31,17 +31,11 @@ const mockMembers = [
   },
 ];
 
-export function GET(
-  req: NextRequest,
-  { params }: { params: { groupid: string } },
-) {
+export function GET() {
   return NextResponse.json({ members: mockMembers });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { groupid: string } },
-) {
+export async function POST(req: NextRequest) {
   const member = await req.json();
   member.id = "MEM-" + Math.floor(Math.random() * 10000);
   return NextResponse.json({ member, message: "Member added successfully" });

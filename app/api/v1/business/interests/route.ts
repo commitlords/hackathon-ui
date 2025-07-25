@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const mockBusinessInterests = [
   { id: 1, name: "Retail" },
