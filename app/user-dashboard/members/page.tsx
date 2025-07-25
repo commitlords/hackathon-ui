@@ -17,6 +17,7 @@ import { HiUsers, HiOutlineExclamationCircle } from "react-icons/hi";
 import { AddMemberSidebar, type NewMemberData } from "../AddMemberSidebar";
 import Image from "next/image";
 import { fetchWithAuth } from "@/app/utils";
+import { API_BASE_URL } from "@/app/utils";
 
 // The Member interface now includes a photo property and business interest.
 interface Member {
@@ -239,7 +240,7 @@ export default function MembersPage() {
                 <div className="flex flex-col items-center pb-4">
                   {member.photoID ? (
                     <Image
-                      src={member.photoID}
+                      src={`${API_BASE_URL}/uploads/${member.photoID}`}
                       alt={`${member.name}'s photo`}
                       width={96}
                       height={96}
