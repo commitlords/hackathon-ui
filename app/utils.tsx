@@ -32,9 +32,16 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const response = await fetch(fullUrl, modifiedOptions);
 
   if (response.status === 401) {
-    console.log("Access token expired, loging out...");
     removeAuthToken();
-    window.location.href = "/";
+    const path = window.location.pathname;
+    if (
+      path !== "/" &&
+      !path.startsWith("/user-login") &&
+      !path.startsWith("/admin-login") &&
+      !path.startsWith("/register")
+    ) {
+      window.location.href = "/";
+    }
   }
   return response;
 };

@@ -480,8 +480,8 @@ export default function MembersPage() {
                 {isUploadingPhoto
                   ? "Uploading..."
                   : isSubmitting
-                  ? "Saving..."
-                  : "Save Changes"}
+                    ? "Saving..."
+                    : "Save Changes"}
               </Button>
               <Button
                 color="gray"
