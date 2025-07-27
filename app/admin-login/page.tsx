@@ -15,7 +15,7 @@ import Link from "next/link";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { fetchWithAuth, setAuthToken } from "../utils";
+import { setAuthToken } from "../utils";
 
 export default function AdminLoginPage() {
   const [loginId, setLoginId] = useState("");
@@ -24,6 +24,7 @@ export default function AdminLoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
   const NEXT_PUBLIC_BACKEND_HOST = process.env.NEXT_PUBLIC_BACKEND_HOST;
@@ -31,6 +32,7 @@ export default function AdminLoginPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setSuccess(null);
     setIsLoading(true);
 
     try {
@@ -40,7 +42,7 @@ export default function AdminLoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: loginId,
+          loginID: loginId,
           password: password,
         }),
       });
@@ -49,10 +51,17 @@ export default function AdminLoginPage() {
         const data = await response.json();
         setAuthToken(data.accessToken);
         // Optionally store token/admin info here (e.g., localStorage)
-        router.push("/admin-dashboard");
+        setSuccess("Login successful! Redirecting to dashboard...");
+        // Add a small delay to prevent multiple redirects
+        setTimeout(() => {
+          router.push("/admin-dashboard");
+        }, 100);
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Invalid credentials for admin.");
+        setError(
+          errorData.message ||
+            "Invalid username or password. Please try again.",
+        );
       }
     } catch (err) {
       setError(
@@ -67,9 +76,6 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 dark:bg-gray-900">
       <div className="relative w-full max-w-sm">
-        <div className="absolute top-4 right-4 z-10">
-          <DarkThemeToggle />
-        </div>
         <Card>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <span className="flex items-center justify-center gap-1 text-xl font-semibold whitespace-nowrap dark:text-white">
@@ -78,12 +84,14 @@ export default function AdminLoginPage() {
                 alt="LOKSamarth Logo"
                 width={90}
                 height={90}
+                priority
               />
               LOKSamarth
             </span>
             <h3 className="text-center text-xl font-medium text-gray-900 dark:text-white">
               Admin Login
             </h3>
+            {success && <Alert color="success">{success}</Alert>}
             {error && (
               <Alert color="failure" onDismiss={() => setError(null)}>
                 {error}
@@ -91,11 +99,11 @@ export default function AdminLoginPage() {
             )}
             <div>
               <div className="mb-2 block">
-                <Label htmlFor="loginId">Login ID</Label>
+                <Label htmlFor="loginId">Username</Label>
               </div>
               <TextInput
                 id="loginId"
-                placeholder="your-login-id"
+                placeholder="admin"
                 required
                 type="text"
                 value={loginId}
@@ -112,7 +120,7 @@ export default function AdminLoginPage() {
                   id="password"
                   required
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -141,12 +149,12 @@ export default function AdminLoginPage() {
                 />
                 <Label htmlFor="remember">Remember me</Label>
               </div>
-              <Link
-                href="/user-login"
+              <a
+                href="#"
                 className="text-sm text-cyan-700 hover:underline dark:text-cyan-500"
               >
-                Login as User?
-              </Link>
+                Forgot Password?
+              </a>
             </div>
             <Button
               type="submit"
@@ -162,6 +170,15 @@ export default function AdminLoginPage() {
                 "Log In"
               )}
             </Button>
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-300">
+              Need user access?{" "}
+              <Link
+                href="/user-login"
+                className="text-cyan-700 hover:underline dark:text-cyan-500"
+              >
+                Login as User
+              </Link>
+            </div>
           </form>
         </Card>
       </div>

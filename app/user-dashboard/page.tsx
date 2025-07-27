@@ -17,6 +17,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
+  Alert,
 } from "flowbite-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, ChangeEvent } from "react";
@@ -25,12 +26,12 @@ import {
   HiUsers,
   HiOutlineIdentification,
   HiOutlineExclamationCircle,
-  HiEye, // Add this import for the view icon
-  HiPencilAlt, // Optionally for edit icon
-  HiTrash, // Optionally for delete icon
-  HiCalendar, // For meetings quick action
-  HiCheckCircle, // For status card
-  HiMap, // For district card
+  HiEye,
+  HiPencilAlt,
+  HiTrash,
+  HiCalendar,
+  HiCheckCircle,
+  HiMap,
 } from "react-icons/hi";
 import { fetchWithAuth } from "../utils";
 
@@ -48,12 +49,37 @@ interface Member {
   bankAccount?: string;
   ifsc?: string;
 }
+
+interface BackendMember {
+  memberID: number;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  dob: string;
+  sex: string;
+  aadharNumber: string;
+  panNumber: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankIfscCode: string;
+  photoID?: string;
+}
+
+interface BackendGroup {
+  groupID: number;
+  groupName: string;
+  district?: string;
+  members: BackendMember[];
+  applications: Application[];
+  interests: Interest[];
+}
 interface Application {
   applicationID: string;
   status: string;
 }
 interface Interest {
   name: string;
+  loanAmount: number;
 }
 
 interface Group {
@@ -76,28 +102,45 @@ export default function UserDashboardPage() {
   const [editableMember, setEditableMember] = useState<Member | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const membersPerPage = 5;
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-  const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [businessInterest, setBusinessInterest] = useState<string | null>(null);
-  const [applicationStatus, setApplicationStatus] = useState<string | null>(
-    null,
-  );
-  const [district, setDistrict] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGroups = async () => {
       setLoading(true);
       setLoadingError(null);
       try {
-        if (groups.length === 0) {
-          const res = await fetchWithAuth("groups");
-          if (!res.ok) throw new Error("Failed to fetch groups");
-          const data = await res.json();
-          console.log("data =", data);
-          setGroups(data || []);
-          localStorage.setItem("groupID", data[0].groupID);
-          localStorage.setItem("groupName", data[0].groupName);
-          console.log("localStorage =", localStorage);
+        const res = await fetchWithAuth("groups");
+        if (!res.ok) throw new Error("Failed to fetch groups");
+        const data = await res.json();
+
+        // Map backend data to frontend format
+        const mappedGroups = (data || []).map((g: BackendGroup) => ({
+          groupID: String(g.groupID),
+          groupName: g.groupName,
+          district: g.district || "N/A",
+          applications: g.applications || [],
+          interests: g.interests || [],
+          members: (g.members || []).map((m: BackendMember) => ({
+            memberID: String(m.memberID),
+            name: m.name,
+            email: m.email,
+            phone: m.phoneNumber,
+            dob: m.dob,
+            sex: m.sex,
+            aadhar: m.aadharNumber,
+            pan: m.panNumber,
+            bankName: m.bankName,
+            bankAccount: m.bankAccountNumber,
+            ifsc: m.bankIfscCode,
+          })),
+        }));
+
+        setGroups(mappedGroups);
+        if (mappedGroups.length > 0) {
+          localStorage.setItem("groupID", mappedGroups[0].groupID);
+          localStorage.setItem("groupName", mappedGroups[0].groupName || "");
         }
       } catch (error) {
         setLoadingError(
@@ -111,7 +154,11 @@ export default function UserDashboardPage() {
   }, []);
 
   // Get all members from all groups (flattened)
-  const allMembers = groups.flatMap((g) => g.members || []);
+  const allMembers = useMemo(
+    () => groups.flatMap((g) => g.members || []),
+    [groups],
+  );
+
   const paginatedMembers = useMemo(() => {
     const startIndex = (currentPage - 1) * membersPerPage;
     return allMembers.slice(startIndex, startIndex + membersPerPage);
@@ -128,62 +175,87 @@ export default function UserDashboardPage() {
     setIsEditMode(false); // Ensure it opens in view mode
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (editableMember) {
       const group = findGroupForMember(editableMember.memberID);
       if (group) {
-        setGroups(
-          groups.map((g) =>
-            g.groupID === group.groupID
-              ? {
-                  ...g,
-                  members: g.members.map((m: Member) =>
-                    m.memberID === editableMember.memberID ? editableMember : m,
-                  ),
-                }
-              : g,
-          ),
-        );
+        setIsSubmitting(true);
+        setSubmitError(null);
+        try {
+          const res = await fetchWithAuth(
+            `groups/${group.groupID}/members/${editableMember.memberID}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(editableMember),
+            },
+          );
+          if (!res.ok) throw new Error("Failed to update member");
+          const data = await res.json();
+
+          // Update local state for immediate UI feedback
+          setGroups(
+            groups.map((g) =>
+              g.groupID === group.groupID
+                ? {
+                    ...g,
+                    members: g.members.map((m: Member) =>
+                      m.memberID === editableMember.memberID ? data.member : m,
+                    ),
+                  }
+                : g,
+            ),
+          );
+          setIsEditMode(false);
+          setSelectedMember(data.member);
+          setSuccessMessage("Member updated successfully!");
+          setTimeout(() => setSuccessMessage(null), 3000);
+        } catch (err) {
+          setSubmitError("Failed to update member.");
+        } finally {
+          setIsSubmitting(false);
+        }
       }
-      setIsEditMode(false);
-      setSelectedMember(editableMember); // Update the view with saved data
     }
   };
 
   const handleDeleteMember = async () => {
     if (selectedMember) {
       const group = findGroupForMember(selectedMember.memberID);
-
       if (group) {
-        setGroups(
-          groups.map((g) =>
-            g.groupID === group.groupID
-              ? {
-                  ...g,
-                  members: g.members.filter(
-                    (m: Member) => m.memberID !== selectedMember.memberID,
-                  ),
-                }
-              : g,
-          ),
-        );
+        setIsSubmitting(true);
+        setSubmitError(null);
+        try {
+          const res = await fetchWithAuth(
+            `groups/${group.groupID}/members/${selectedMember.memberID}`,
+            {
+              method: "DELETE",
+            },
+          );
+          if (!res.ok) throw new Error("Failed to delete member");
+          setGroups(
+            groups.map((g) =>
+              g.groupID === group.groupID
+                ? {
+                    ...g,
+                    members: g.members.filter(
+                      (m: Member) => m.memberID !== selectedMember.memberID,
+                    ),
+                  }
+                : g,
+            ),
+          );
+          setOpenDeleteModal(false);
+          setOpenModal(false);
+          setSelectedMember(null);
+          setSuccessMessage("Member deleted successfully!");
+          setTimeout(() => setSuccessMessage(null), 3000);
+        } catch (err) {
+          setSubmitError("Failed to delete member.");
+        } finally {
+          setIsSubmitting(false);
+        }
       }
-      try {
-        const res = await fetchWithAuth(
-          `groups/${group?.groupID}/members/${selectedMember?.memberID}`,
-          {
-            method: "DELETE",
-          },
-        );
-        if (!res.ok) throw new Error("Failed to delete member");
-      } catch (error) {
-        setLoadingError(
-          error instanceof Error ? error.message : "An unknown error occurred.",
-        );
-      }
-      setOpenDeleteModal(false);
-      setOpenModal(false);
-      setSelectedMember(null);
     }
   };
 
@@ -199,9 +271,10 @@ export default function UserDashboardPage() {
     setCurrentPage(page);
   };
 
-  const handleExpandGroup = (groupId: string) => {
-    setExpandedGroup((prev) => (prev === groupId ? null : groupId));
-  };
+  console.log("Groups data:", groups);
+  console.log("First group interests:", groups[0]?.interests);
+  console.log("First interest item:", groups[0]?.interests?.[0]);
+  console.log("Type of first interest:", typeof groups[0]?.interests?.[0]);
 
   return (
     <div className="w-full overflow-y-auto">
@@ -215,6 +288,10 @@ export default function UserDashboardPage() {
             activity.
           </p>
         </header>
+
+        {successMessage && <Alert color="success">{successMessage}</Alert>}
+        {loadingError && <Alert color="failure">{loadingError}</Alert>}
+        {submitError && <Alert color="failure">{submitError}</Alert>}
 
         {/* Stats Cards */}
         <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
@@ -231,8 +308,7 @@ export default function UserDashboardPage() {
                   {loading ? (
                     <Spinner size="sm" />
                   ) : (
-                    (groups.reduce((sum, g) => sum + g.members?.length, 0) ??
-                    "N/A")
+                    (allMembers.length ?? "N/A")
                   )}
                 </p>
               </div>
@@ -275,7 +351,6 @@ export default function UserDashboardPage() {
           <Card className="w-full">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-800">
-                {/* You can use an icon here if desired */}
                 <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
                   ID
                 </span>
@@ -287,7 +362,8 @@ export default function UserDashboardPage() {
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {loading ? (
                     <Spinner size="sm" />
-                  ) : groups.length > 0 && groups[0].applications.length > 0 ? (
+                  ) : groups.length > 0 &&
+                    groups[0].applications?.length > 0 ? (
                     groups[0].applications
                       .map((app) => app.applicationID)
                       .join(", ")
@@ -313,7 +389,7 @@ export default function UserDashboardPage() {
                   {loading ? (
                     <Spinner size="sm" />
                   ) : (
-                    groups[0]?.applications[0]?.status || "N/A"
+                    groups[0]?.applications?.[0]?.status || "N/A"
                   )}
                 </p>
               </div>
@@ -329,7 +405,21 @@ export default function UserDashboardPage() {
                   Business Interest
                 </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {groups[0]?.interests[0]?.name || "N/A"}
+                  {groups[0]?.interests?.length > 0
+                    ? groups[0].interests
+                        .map((interest) => {
+                          console.log("Interest item:", interest);
+                          if (typeof interest === "string") return interest;
+                          if (
+                            interest &&
+                            typeof interest === "object" &&
+                            "name" in interest
+                          )
+                            return interest.name;
+                          return String(interest);
+                        })
+                        .join(", ")
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -357,7 +447,7 @@ export default function UserDashboardPage() {
           <div className="flex flex-wrap gap-4">
             <Button as={Link} href={`/user-dashboard/members`}>
               <HiUsers className="mr-2 h-5 w-5" />
-              Add Members
+              Manage Members
             </Button>
             <Button
               as={Link}
@@ -383,11 +473,6 @@ export default function UserDashboardPage() {
           {loading && (
             <div className="flex h-72 items-center justify-center rounded-lg border dark:border-gray-700">
               <Spinner aria-label="Loading members..." size="xl" />
-            </div>
-          )}
-          {loadingError && (
-            <div className="flex h-72 items-center justify-center rounded-lg border border-red-500 bg-red-50 dark:border-red-600 dark:bg-gray-800">
-              <p className="text-red-700 dark:text-red-400">{loadingError}</p>
             </div>
           )}
           {!loading && !loadingError && (
@@ -431,8 +516,6 @@ export default function UserDashboardPage() {
                           >
                             <HiEye className="h-5 w-5" />
                           </button>
-                          {/* Optionally, you can add edit and delete icons here for quick actions */}
-
                           <button
                             className="text-green-600 hover:text-green-800"
                             title="Edit Member"
@@ -473,8 +556,6 @@ export default function UserDashboardPage() {
             </Card>
           )}
         </div>
-
-        {/* Delete Confirmation Modal */}
       </div>
 
       {/* Member Details Modal */}
@@ -667,8 +748,14 @@ export default function UserDashboardPage() {
         <ModalFooter>
           {isEditMode ? (
             <>
-              <Button onClick={handleSaveChanges}>Save Changes</Button>
-              <Button color="gray" onClick={() => setIsEditMode(false)}>
+              <Button onClick={handleSaveChanges} disabled={isSubmitting}>
+                {isSubmitting ? <Spinner size="sm" /> : "Save Changes"}
+              </Button>
+              <Button
+                color="gray"
+                onClick={() => setIsEditMode(false)}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
             </>
@@ -701,10 +788,18 @@ export default function UserDashboardPage() {
               Are you sure you want to delete this member?
             </h3>
             <div className="flex justify-center gap-4">
-              <Button color="failure" onClick={handleDeleteMember}>
-                {"Yes, I'm sure"}
+              <Button
+                color="failure"
+                onClick={handleDeleteMember}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? <Spinner size="sm" /> : "Yes, I'm sure"}
               </Button>
-              <Button color="gray" onClick={() => setOpenDeleteModal(false)}>
+              <Button
+                color="gray"
+                onClick={() => setOpenDeleteModal(false)}
+                disabled={isSubmitting}
+              >
                 No, cancel
               </Button>
             </div>

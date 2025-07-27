@@ -29,7 +29,6 @@ export default function UserLoginPage() {
 
   const NEXT_PUBLIC_BACKEND_HOST = process.env.NEXT_PUBLIC_BACKEND_HOST;
 
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -43,8 +42,8 @@ export default function UserLoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          "loginID": username,
-          "password": password,
+          loginID: username,
+          password: password,
         }),
       });
 
@@ -53,7 +52,10 @@ export default function UserLoginPage() {
         setAuthToken(data.accessToken);
         // Optionally store token/user info here (e.g., localStorage)
         setSuccess("Login successful! Redirecting to dashboard...");
-        router.push("/user-dashboard");
+        // Add a small delay to prevent multiple redirects
+        setTimeout(() => {
+          router.push("/user-dashboard");
+        }, 100);
       } else {
         const errorData = await response.json();
         setError(
@@ -74,9 +76,6 @@ export default function UserLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 dark:bg-gray-900">
       <div className="relative w-full max-w-sm">
-        <div className="absolute top-4 right-4 z-10">
-          <DarkThemeToggle />
-        </div>
         <Card>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <span className="flex items-center justify-center gap-1 text-xl font-semibold whitespace-nowrap dark:text-white">
@@ -85,6 +84,7 @@ export default function UserLoginPage() {
                 alt="LOKSamarth Logo"
                 width={90}
                 height={90}
+                priority
               />
               LOKSamarth
             </span>

@@ -59,9 +59,9 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           loginID: username,
-          password:password,
-          groupName:groupName,
-          district:district,
+          password: password,
+          groupName: groupName,
+          district: district,
           groupPhoneNumber: countryCode + phoneNumber,
           groupEmail: email,
           createdBy: username,
@@ -69,14 +69,18 @@ export default function RegisterPage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setSuccess("Registration successful! Redirecting to login page...");
+        setSuccess(
+          "Great! Your account has been created. You will be redirected to the login page shortly.",
+        );
         setTimeout(() => {
           router.push("/user-login");
-        }, 2000);
+        }, 2500);
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Registration failed. Please try again.");
+        setError(
+          errorData.message ||
+            "Something went wrong. Please check your details and try again.",
+        );
       }
     } catch (err) {
       setError(
@@ -102,6 +106,7 @@ export default function RegisterPage() {
                 alt="LOKSamarth Logo"
                 width={90}
                 height={90}
+                priority
               />
               LOKSamarth
             </span>

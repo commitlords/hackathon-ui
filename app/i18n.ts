@@ -19,6 +19,14 @@ i18n
       hi: { translation: hi },
       mr: { translation: mr },
     },
+    // Add these options to prevent unnecessary re-renders
+    react: {
+      useSuspense: false,
+    },
+    detection: {
+      order: ["localStorage", "navigator"],
+      caches: ["localStorage"],
+    },
   });
 
 export default i18n;

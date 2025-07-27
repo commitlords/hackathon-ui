@@ -1,78 +1,102 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { fetchWithAuth, API_BASE_URL } from "@/app/utils";
 import {
-  Table,
-  TableHead,
-  TableHeadCell,
-  TableBody,
-  TableRow,
-  TableCell,
-  Button,
-  Badge,
-  Spinner,
   Alert,
+  Badge,
+  Button,
+  Card,
   Modal,
-  ModalHeader,
   ModalBody,
   ModalFooter,
-  TextInput,
-  Card,
+  ModalHeader,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeadCell,
+  TableRow,
+  Textarea,
+  Tooltip,
 } from "flowbite-react";
+import Image from "next/image";
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  HiOutlineUserGroup,
   HiOutlineCheckCircle,
-  HiOutlineClipboardCheck,
-  HiOutlineEye,
   HiOutlineXCircle,
-  HiOutlineChevronDown,
-  HiOutlineChevronRight,
   HiOutlineCalendar,
-  HiOutlineCreditCard,
-  HiOutlineShieldCheck,
-} from "react-icons/hi";
-import { fetchWithAuth } from "@/app/utils";
+  HiShieldCheck,
+  HiBanknotes,
+  HiQuestionMarkCircle,
+  HiExclamationCircle,
+} from "react-icons/hi2";
+
+// --- Interfaces ---
 
 interface Member {
-  id: string;
+  memberID: number;
   name: string;
   email: string;
-  phone: string;
+  phoneNumber: string;
   dob: string;
   sex: string;
-  aadhar: string;
-  pan: string;
+  aadharNumber: string;
+  panNumber: string;
   bankName: string;
-  bankAccount: string;
-  ifsc: string;
-  photo?: string;
+  bankAccountNumber: string;
+  bankIfscCode: string;
+  photoID?: string;
 }
 
 interface Application {
   applicationId: string;
-  groupId: string;
+  groupID: number;
   groupName: string;
-  businessInterest: string;
+  businessInterest: { name: string }[];
   createdAt: string;
   status: string;
-  reason: string;
-  members: Member[];
+  comment: string;
+  district: string;
+  members?: Member[];
+}
+
+interface BackendApplication {
+  appicationID: string; // Backend typo
+  groupID: number;
+  groupName: string;
+  businessInterest: { name: string }[];
+  createdAt: string;
+  status: string;
+  comment: string;
+  district: string;
+}
+
+type ValidationStatus = "pending" | "valid" | "invalid" | "loading";
+
+interface MemberValidationStatus {
+  aadhar: ValidationStatus;
+  bank: ValidationStatus;
+  message?: string;
 }
 
 const statusColors: Record<string, string> = {
-  Pending: "warning",
+  IN_PROGRESS: "warning",
+  REJECTED: "failure",
   Validated: "success",
-  "Review Application": "failure",
   "Training Assigned": "info",
-  Rejected: "failure",
-  "Training Completed": "success",
+  "Training Completed": "purple",
+  "Loan Request Sent": "cyan",
+  "Loan Disbursed": "success",
 };
+
+// --- Component ---
 
 export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expandedAppId, setExpandedAppId] = useState<string | null>(null);
   const [modal, setModal] = useState<null | {
     type: "reject";
     app: Application;
@@ -80,89 +104,193 @@ export default function AdminApplicationsPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [validationStatus, setValidationStatus] = useState<
+    Record<number, MemberValidationStatus>
+  >({});
 
-  useEffect(() => {
-    const fetchApplications = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetchWithAuth("applications");
-        if (!res.ok) throw new Error("Failed to fetch applications");
-        const data = await res.json();
-        setApplications(data.applications || []);
-      } catch (err) {
-        setError("Could not load applications.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchApplications();
+  const fetchApplications = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchWithAuth("applications");
+      if (!res.ok) throw new Error("Failed to fetch applications");
+      const data = await res.json();
+      setApplications(
+        (data || []).map((app: BackendApplication) => ({
+          ...app,
+          applicationId: app.appicationID,
+        })),
+      );
+    } catch (err) {
+      setError("Could not load applications.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const updateApplication = async (
-    applicationId: string,
-    updates: Partial<Application>,
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  const handleUpdateStatus = async (
+    appId: string,
+    status: string,
+    comment?: string,
   ) => {
-    setActionLoading(applicationId);
+    setActionLoading(`${appId}-${status}`);
+    setSuccessMsg(null);
+    setError(null);
     try {
-      const res = await fetchWithAuth(`applications/${applicationId}`, {
+      const res = await fetchWithAuth(`applications/${appId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({ status, comment }),
       });
-      if (!res.ok) throw new Error("Failed to update application");
-      const data = await res.json();
+      if (!res.ok) throw new Error("Failed to update status");
+      const updatedApp = await res.json();
+
       setApplications((prev) =>
         prev.map((app) =>
-          app.applicationId === applicationId ? { ...app, ...updates } : app,
+          app.applicationId === appId
+            ? { ...app, status: updatedApp.status, comment: updatedApp.comment }
+            : app,
         ),
       );
-      setSuccessMsg(data.message || "Application updated successfully");
-      setTimeout(() => setSuccessMsg(null), 2500);
+      setSuccessMsg(`Application ${appId} has been updated to "${status}".`);
     } catch (err) {
-      setError("Failed to update application.");
+      setError("Failed to update status. Please try again.");
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleExpand = (applicationId: string) => {
-    setExpanded((prev) => (prev === applicationId ? null : applicationId));
-  };
-
-  const handleAssignTraining = (app: Application) => {
-    updateApplication(app.applicationId, { status: "Training Assigned" });
-  };
-
-  const handleTrainingCompleted = (app: Application) => {
-    updateApplication(app.applicationId, { status: "Training Completed" });
-  };
-
-  const handleReject = (app: Application) => {
+  const handleRejectClick = (app: Application) => {
     setModal({ type: "reject", app });
     setRejectReason("");
   };
 
   const handleConfirmReject = async () => {
-    if (modal) {
-      await updateApplication(modal.app.applicationId, {
-        status: "Rejected",
-        reason: rejectReason,
-      });
+    if (modal && modal.type === "reject" && rejectReason) {
+      await handleUpdateStatus(
+        modal.app.applicationId,
+        "REJECTED",
+        rejectReason,
+      );
       setModal(null);
     }
   };
 
-  const handleValidateAadhar = (app: Application, member: Member) => {
-    // Stub: In real app, call validation API
-    setSuccessMsg(`Aadhar for ${member.name} validated!`);
-    setTimeout(() => setSuccessMsg(null), 2000);
+  const handleExpand = async (app: Application) => {
+    const newExpandedAppId =
+      expandedAppId === app.applicationId ? null : app.applicationId;
+    setExpandedAppId(newExpandedAppId);
+
+    if (newExpandedAppId && !app.members) {
+      try {
+        const res = await fetchWithAuth(`groups/${app.groupID}/members`);
+        if (!res.ok) throw new Error("Failed to fetch members");
+        const data = await res.json();
+
+        setApplications((apps) =>
+          apps.map((currentApp) =>
+            currentApp.applicationId === app.applicationId
+              ? { ...currentApp, members: data }
+              : currentApp,
+          ),
+        );
+
+        const initialStatuses: Record<number, MemberValidationStatus> = {};
+        (data || []).forEach((member: Member) => {
+          initialStatuses[member.memberID] = {
+            aadhar: "pending",
+            bank: "pending",
+          };
+        });
+        setValidationStatus((prev) => ({ ...prev, ...initialStatuses }));
+      } catch (err) {
+        setError(
+          `Could not load members for application ${app.applicationId}.`,
+        );
+      }
+    }
   };
 
-  const handleValidateBank = (app: Application, member: Member) => {
-    // Stub: In real app, call validation API
-    setSuccessMsg(`Bank for ${member.name} validated!`);
-    setTimeout(() => setSuccessMsg(null), 2000);
+  const handleValidation = async (
+    app: Application,
+    member: Member,
+    type: "aadhar" | "bank",
+  ) => {
+    setValidationStatus((prev) => ({
+      ...prev,
+      [member.memberID]: { ...prev[member.memberID], [type]: "loading" },
+    }));
+
+    let endpoint = "";
+    let body = {};
+
+    if (type === "aadhar") {
+      endpoint = "aadhar_service/validate";
+      body = {
+        aadhar_number: member.aadharNumber,
+        name: member.name,
+        dob: member.dob.split("T")[0],
+        address: app.district, // Using district from the application
+        gender: member.sex,
+        mobile_number: parseInt(member.phoneNumber, 10),
+        pan_number: member.panNumber,
+      };
+    } else {
+      endpoint = "bank/validate";
+      body = {
+        account_number: parseInt(member.bankAccountNumber, 10),
+        aadhar_number: parseInt(member.aadharNumber, 10),
+        pan_number: member.panNumber,
+        ifsc_code: member.bankIfscCode,
+        mobile_number: parseInt(member.phoneNumber, 10),
+      };
+    }
+
+    try {
+      const res = await fetchWithAuth(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const result = await res.json();
+      const newStatus: ValidationStatus = result.valid ? "valid" : "invalid";
+
+      setValidationStatus((prev) => ({
+        ...prev,
+        [member.memberID]: {
+          ...prev[member.memberID],
+          [type]: newStatus,
+          message: result.message,
+        },
+      }));
+    } catch (err) {
+      setValidationStatus((prev) => ({
+        ...prev,
+        [member.memberID]: {
+          ...prev[member.memberID],
+          [type]: "invalid",
+          message: "Validation request failed.",
+        },
+      }));
+    }
+  };
+
+  const getValidationIcon = (status: ValidationStatus) => {
+    switch (status) {
+      case "loading":
+        return <Spinner size="sm" />;
+      case "valid":
+        return <HiOutlineCheckCircle className="h-6 w-6 text-green-500" />;
+      case "invalid":
+        return <HiExclamationCircle className="h-6 w-6 text-red-500" />;
+      default:
+        return <HiQuestionMarkCircle className="h-6 w-6 text-gray-400" />;
+    }
   };
 
   return (
@@ -171,213 +299,284 @@ export default function AdminApplicationsPage() {
         Applications
       </h1>
       {successMsg && (
-        <Alert color="success" className="mb-4">
+        <Alert
+          color="success"
+          onDismiss={() => setSuccessMsg(null)}
+          className="mb-4"
+        >
           {successMsg}
         </Alert>
       )}
-      {error && <Alert color="failure">{error}</Alert>}
+      {error && (
+        <Alert
+          color="failure"
+          onDismiss={() => setError(null)}
+          className="mb-4"
+        >
+          {error}
+        </Alert>
+      )}
+
       {loading ? (
         <div className="my-8 flex justify-center">
-          <Spinner />
+          <Spinner size="xl" />
         </div>
       ) : (
         <Card>
           <div className="overflow-x-auto">
             <Table hoverable>
               <TableHead>
-                <TableHeadCell>Application ID</TableHeadCell>
-                <TableHeadCell>Group ID</TableHeadCell>
-                <TableHeadCell>Group Name</TableHeadCell>
-                <TableHeadCell>Business Interest</TableHeadCell>
-                <TableHeadCell>Created At</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Actions</TableHeadCell>
-                <TableHeadCell>Reason</TableHeadCell>
+                <TableRow>
+                  <TableHeadCell>Application ID</TableHeadCell>
+                  <TableHeadCell>Group Name</TableHeadCell>
+                  <TableHeadCell>Business Interest</TableHeadCell>
+                  <TableHeadCell>Created At</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                  <TableHeadCell>Comment</TableHeadCell>
+                  <TableHeadCell>Actions</TableHeadCell>
+                </TableRow>
               </TableHead>
               <TableBody className="divide-y">
-                {applications.map((app) => {
-                  const isExpanded = expanded === app.applicationId;
-                  return (
-                    <>
-                      <TableRow key={app.applicationId}>
-                        <TableCell>
-                          <button
-                            className="text-blue-600 hover:underline"
-                            onClick={() => handleExpand(app.applicationId)}
-                          >
-                            {app.applicationId}
-                          </button>
-                        </TableCell>
-                        <TableCell>{app.groupId}</TableCell>
-                        <TableCell>{app.groupName}</TableCell>
-                        <TableCell>{app.businessInterest}</TableCell>
-                        <TableCell>
-                          {new Date(app.createdAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <Badge color={statusColors[app.status] || "gray"}>
-                            {app.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {app.status === "Pending" && (
-                            <div className="flex gap-2">
-                              <button
-                                title="Validate"
-                                className="rounded p-1 text-green-600 hover:bg-green-100"
-                                onClick={() =>
-                                  updateApplication(app.applicationId, {
-                                    status: "Validated",
-                                  })
-                                }
-                                disabled={actionLoading === app.applicationId}
-                              >
-                                <HiOutlineCheckCircle className="h-5 w-5" />
-                              </button>
-                              <button
-                                title="Reject"
-                                className="rounded p-1 text-red-600 hover:bg-red-100"
-                                onClick={() => handleReject(app)}
-                                disabled={actionLoading === app.applicationId}
-                              >
-                                <HiOutlineXCircle className="h-5 w-5" />
-                              </button>
+                {applications.map((app) => (
+                  <React.Fragment key={app.applicationId}>
+                    <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                      <TableCell>
+                        <button
+                          className="font-semibold text-cyan-600 hover:underline"
+                          onClick={() => handleExpand(app)}
+                        >
+                          {app.applicationId}
+                        </button>
+                      </TableCell>
+                      <TableCell>{app.groupName}</TableCell>
+                      <TableCell>
+                        {app.businessInterest
+                          .map((bi) => bi.name.replace(/[{}]/g, ""))
+                          .join(", ")}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(app.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge color={statusColors[app.status] || "gray"}>
+                          {app.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{app.comment || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {actionLoading?.startsWith(app.applicationId) ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <>
+                              {app.status === "IN_PROGRESS" && (
+                                <>
+                                  <Tooltip content="Validate Application">
+                                    <button
+                                      onClick={() =>
+                                        handleUpdateStatus(
+                                          app.applicationId,
+                                          "Validated",
+                                        )
+                                      }
+                                      className="text-green-500 hover:text-green-700"
+                                    >
+                                      <HiOutlineCheckCircle className="h-6 w-6" />
+                                    </button>
+                                  </Tooltip>
+                                  <Tooltip content="Reject Application">
+                                    <button
+                                      onClick={() => handleRejectClick(app)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <HiOutlineXCircle className="h-6 w-6" />
+                                    </button>
+                                  </Tooltip>
+                                </>
+                              )}
+                              {app.status === "Validated" && (
+                                <Tooltip content="Assign Training">
+                                  <button
+                                    onClick={() =>
+                                      handleUpdateStatus(
+                                        app.applicationId,
+                                        "Training Assigned",
+                                      )
+                                    }
+                                    className="text-blue-500 hover:text-blue-700"
+                                  >
+                                    <HiOutlineCalendar className="h-6 w-6" />
+                                  </button>
+                                </Tooltip>
+                              )}
+                              {app.status === "Training Assigned" && (
+                                <Tooltip content="Mark Training as Completed">
+                                  <button
+                                    onClick={() =>
+                                      handleUpdateStatus(
+                                        app.applicationId,
+                                        "Training Completed",
+                                      )
+                                    }
+                                    className="text-purple-500 hover:text-purple-700"
+                                  >
+                                    <HiShieldCheck className="h-6 w-6" />
+                                  </button>
+                                </Tooltip>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+
+                    {expandedAppId === app.applicationId && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="bg-gray-50 p-4 dark:bg-gray-800"
+                        >
+                          {!app.members ? (
+                            <div className="flex justify-center">
+                              <Spinner />
                             </div>
-                          )}
-                          {app.status === "Validated" && (
-                            <button
-                              title="Assign Training"
-                              className="rounded p-1 text-blue-600 hover:bg-blue-100"
-                              onClick={() => handleAssignTraining(app)}
-                              disabled={actionLoading === app.applicationId}
-                            >
-                              <HiOutlineCalendar className="h-5 w-5" />
-                            </button>
-                          )}
-                          {app.status === "Training Assigned" && (
-                            <button
-                              title="Training Completed"
-                              className="rounded p-1 text-green-600 hover:bg-green-100"
-                              onClick={() => handleTrainingCompleted(app)}
-                              disabled={actionLoading === app.applicationId}
-                            >
-                              <HiOutlineClipboardCheck className="h-5 w-5" />
-                            </button>
-                          )}
-                          {app.status === "Rejected" && (
-                            <span className="text-red-500">Rejected</span>
-                          )}
-                          {app.status === "Training Completed" && (
-                            <span className="text-green-600">Done</span>
-                          )}
-                          {app.status === "Review Application" && (
-                            <span className="text-yellow-600">Review</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{app.reason || "-"}</TableCell>
-                      </TableRow>
-                      {isExpanded && (
-                        <TableRow>
-                          <TableCell
-                            colSpan={8}
-                            className="bg-gray-50 dark:bg-gray-800"
-                          >
-                            <div className="p-4">
-                              <h3 className="mb-2 font-semibold">
-                                Group Members
+                          ) : (
+                            <div>
+                              <h3 className="mb-4 text-lg font-semibold">
+                                Members of {app.groupName} ({app.members.length}
+                                )
                               </h3>
                               <Table>
                                 <TableHead>
-                                  <TableHeadCell>Member ID</TableHeadCell>
-                                  <TableHeadCell>Name</TableHeadCell>
-                                  <TableHeadCell>Email</TableHeadCell>
-                                  <TableHeadCell>Phone</TableHeadCell>
-                                  <TableHeadCell>DOB</TableHeadCell>
-                                  <TableHeadCell>Sex</TableHeadCell>
-                                  <TableHeadCell>Aadhar</TableHeadCell>
-                                  <TableHeadCell>Bank</TableHeadCell>
-                                  <TableHeadCell>PAN</TableHeadCell>
-                                  <TableHeadCell>Account No.</TableHeadCell>
-                                  <TableHeadCell>IFSC</TableHeadCell>
-                                  <TableHeadCell>Photo</TableHeadCell>
-                                  <TableHeadCell>
-                                    Aadhar Validation
-                                  </TableHeadCell>
-                                  <TableHeadCell>Bank Validation</TableHeadCell>
+                                  <TableRow>
+                                    <TableHeadCell>Photo</TableHeadCell>
+                                    <TableHeadCell>Name</TableHeadCell>
+                                    <TableHeadCell>Contact</TableHeadCell>
+                                    <TableHeadCell>Identity</TableHeadCell>
+                                    <TableHeadCell>Validation</TableHeadCell>
+                                  </TableRow>
                                 </TableHead>
-                                <TableBody>
-                                  {app.members.map((m) => (
-                                    <TableRow key={m.id}>
-                                      <TableCell>{m.id}</TableCell>
-                                      <TableCell>{m.name}</TableCell>
-                                      <TableCell>{m.email}</TableCell>
-                                      <TableCell>{m.phone}</TableCell>
-                                      <TableCell>{m.dob}</TableCell>
-                                      <TableCell>{m.sex}</TableCell>
-                                      <TableCell>{m.aadhar}</TableCell>
-                                      <TableCell>{m.bankName}</TableCell>
-                                      <TableCell>{m.pan}</TableCell>
-                                      <TableCell>{m.bankAccount}</TableCell>
-                                      <TableCell>{m.ifsc}</TableCell>
+                                <TableBody className="divide-y">
+                                  {app.members.map((member) => (
+                                    <TableRow key={member.memberID}>
                                       <TableCell>
-                                        {m.photo ? (
-                                          <img
-                                            src={m.photo}
-                                            alt="Member"
-                                            className="h-10 w-10 rounded-full object-cover"
-                                          />
-                                        ) : (
-                                          <span>-</span>
-                                        )}
+                                        <Image
+                                          src={`${API_BASE_URL}/uploads/${member.photoID}`}
+                                          alt={`${member.name}'s photo`}
+                                          width={48}
+                                          height={48}
+                                          unoptimized
+                                          className="h-12 w-12 rounded-full object-cover"
+                                        />
+                                      </TableCell>
+                                      <TableCell className="font-medium text-gray-900 dark:text-white">
+                                        {member.name}
+                                      </TableCell>
+                                      <TableCell className="text-sm">
+                                        <p>{member.email}</p>
+                                        <p>{member.phoneNumber}</p>
+                                      </TableCell>
+                                      <TableCell className="text-sm">
+                                        <p>
+                                          <b>Aadhar:</b> {member.aadharNumber}
+                                        </p>
+                                        <p>
+                                          <b>PAN:</b> {member.panNumber}
+                                        </p>
                                       </TableCell>
                                       <TableCell>
-                                        <button
-                                          title="Validate Aadhar"
-                                          className="rounded p-1 text-blue-600 hover:bg-blue-100"
-                                          onClick={() =>
-                                            handleValidateAadhar(app, m)
-                                          }
-                                        >
-                                          <HiOutlineShieldCheck className="h-5 w-5" />
-                                        </button>
-                                      </TableCell>
-                                      <TableCell>
-                                        <button
-                                          title="Validate Bank"
-                                          className="rounded p-1 text-green-600 hover:bg-green-100"
-                                          onClick={() =>
-                                            handleValidateBank(app, m)
-                                          }
-                                        >
-                                          <HiOutlineCreditCard className="h-5 w-5" />
-                                        </button>
+                                        <div className="flex items-center gap-4">
+                                          <Tooltip
+                                            content={`Aadhar: ${validationStatus[member.memberID]?.message || "Pending"}`}
+                                          >
+                                            <Button
+                                              size="xs"
+                                              color="light"
+                                              onClick={() =>
+                                                handleValidation(
+                                                  app,
+                                                  member,
+                                                  "aadhar",
+                                                )
+                                              }
+                                              disabled={
+                                                validationStatus[
+                                                  member.memberID
+                                                ]?.aadhar === "loading"
+                                              }
+                                            >
+                                              <HiShieldCheck className="mr-2 h-4 w-4" />
+                                              {getValidationIcon(
+                                                validationStatus[
+                                                  member.memberID
+                                                ]?.aadhar,
+                                              )}
+                                            </Button>
+                                          </Tooltip>
+                                          <Tooltip
+                                            content={`Bank: ${validationStatus[member.memberID]?.message || "Pending"}`}
+                                          >
+                                            <Button
+                                              size="xs"
+                                              color="light"
+                                              onClick={() =>
+                                                handleValidation(
+                                                  app,
+                                                  member,
+                                                  "bank",
+                                                )
+                                              }
+                                              disabled={
+                                                validationStatus[
+                                                  member.memberID
+                                                ]?.bank === "loading"
+                                              }
+                                            >
+                                              <HiBanknotes className="mr-2 h-4 w-4" />
+                                              {getValidationIcon(
+                                                validationStatus[
+                                                  member.memberID
+                                                ]?.bank,
+                                              )}
+                                            </Button>
+                                          </Tooltip>
+                                        </div>
                                       </TableCell>
                                     </TableRow>
                                   ))}
                                 </TableBody>
                               </Table>
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </>
-                  );
-                })}
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
               </TableBody>
             </Table>
           </div>
         </Card>
       )}
-      {/* Reject Modal */}
-      <Modal show={!!modal} onClose={() => setModal(null)}>
-        <ModalHeader>Reject Application</ModalHeader>
+
+      {/* Rejection Modal */}
+      <Modal show={modal?.type === "reject"} onClose={() => setModal(null)}>
+        <ModalHeader>
+          Reject Application {modal?.app.applicationId}
+        </ModalHeader>
         <ModalBody>
-          <div>
-            <p className="mb-2">Please enter the reason for rejection:</p>
-            <TextInput
+          <div className="space-y-4">
+            <p>
+              Please provide a reason for rejecting the application for group{" "}
+              <b>{modal?.app.groupName}</b>.
+            </p>
+            <Textarea
+              id="rejectReason"
+              placeholder="Enter reason for rejection..."
+              required
+              rows={4}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Reason for rejection"
             />
           </div>
         </ModalBody>
@@ -385,11 +584,9 @@ export default function AdminApplicationsPage() {
           <Button
             color="failure"
             onClick={handleConfirmReject}
-            disabled={
-              !rejectReason || actionLoading === modal?.app.applicationId
-            }
+            disabled={!rejectReason || !!actionLoading}
           >
-            Reject
+            {actionLoading ? <Spinner size="sm" /> : "Confirm Rejection"}
           </Button>
           <Button color="gray" onClick={() => setModal(null)}>
             Cancel

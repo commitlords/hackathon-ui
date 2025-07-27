@@ -22,7 +22,7 @@ export default function ImageCarousel() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [handleNext]);
+  }, []);
 
   const handlePrev = () => {
     setActiveIndex(

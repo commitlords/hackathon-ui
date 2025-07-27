@@ -2,6 +2,8 @@
 import { DarkThemeToggle } from "flowbite-react";
 import { HiTranslate } from "react-icons/hi";
 import { useTranslation } from "react-i18next";
+import Image from "next/image";
+import { useCallback, memo } from "react";
 import {
   Button,
   Navbar,
@@ -34,10 +36,10 @@ type Translations = {
 
 interface HeaderProps {
   translations: Translations;
-  language: "en" | "hi" ;
+  language: "en" | "hi";
 }
 
-export function TopComponent({
+export const TopComponent = memo(function TopComponent({
   fontSize,
   setFontSize,
 }: {
@@ -46,15 +48,24 @@ export function TopComponent({
 }) {
   const { i18n } = useTranslation();
 
-  console.log('Current language:', i18n.language);
+  // console.log("Current language:", i18n.language);
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-  };
+  const changeLanguage = useCallback(
+    (lng: string) => {
+      i18n.changeLanguage(lng);
+    },
+    [i18n],
+  );
 
-  const increaseFontSize = () => setFontSize(fontSize + 2);
-  const decreaseFontSize = () => setFontSize(Math.max(fontSize - 2, 12));
-  const resetFontSize = () => setFontSize(16);
+  const increaseFontSize = useCallback(
+    () => setFontSize(fontSize + 2),
+    [fontSize, setFontSize],
+  );
+  const decreaseFontSize = useCallback(
+    () => setFontSize(Math.max(fontSize - 2, 12)),
+    [fontSize, setFontSize],
+  );
+  const resetFontSize = useCallback(() => setFontSize(16), [setFontSize]);
 
   return (
     <header className="flex items-center justify-end bg-gray-100 p-2 dark:bg-gray-800">
@@ -91,15 +102,21 @@ export function TopComponent({
           arrowIcon={false}
           inline
         >
-          <DropdownItem onClick={() => changeLanguage("en")}>English</DropdownItem>
-          <DropdownItem onClick={() => changeLanguage("hi")}>हिन्दी</DropdownItem>
-          <DropdownItem onClick={() => changeLanguage("mr")}>मराठी</DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("en")}>
+            English
+          </DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("hi")}>
+            हिन्दी
+          </DropdownItem>
+          <DropdownItem onClick={() => changeLanguage("mr")}>
+            मराठी
+          </DropdownItem>
         </Dropdown>
         <DarkThemeToggle />
       </div>
     </header>
   );
-}
+});
 
 export function Header({ translations, language }: HeaderProps) {
   const t = translations[language];
@@ -107,12 +124,15 @@ export function Header({ translations, language }: HeaderProps) {
   return (
     <Navbar fluid>
       <NavbarBrand href="https://loksamarth.gov.in" target="/_blank">
-        <img
+        <Image
           src="/Logo.png"
-          className="mr-1 h-6 sm:h-9"
+          width={36}
+          height={36}
+          className="mr-1 h-6 w-6 sm:h-9 sm:w-9"
           alt="LOKSamarth Logo"
+          priority
         />
-        <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+        <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
           {t.appName}
         </span>
       </NavbarBrand>
